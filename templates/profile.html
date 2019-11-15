@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<head>
+
+</head>
+<body>
+    <p>{{accountName}}</p>
+    <img alt="Profile pic" src={{accountProfilePicture}} width=32 height=32></img>
+    <p>Search for a player!</p>
+    <form method="POST">
+        <input name="search">
+    </form>
+    {% if searchName %}
+        <p>{{searchName}}</p>
+        <p>{{searchRating}}</p>
+    {% elif searchResults %}
+        <p>{{searchResults}}</p>
+    {% endif %}
+</body>

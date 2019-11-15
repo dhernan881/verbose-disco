@@ -133,7 +133,6 @@ def getPlayerStatsFromLink(link):
     i1 = importantLines[11][i0:].index("<") - 1
     playerStats["percentHeadshot"] = float(importantLines[11][i0: i0 + i1])
 
-    print(importantLines[12])
     i0 = importantLines[12].index("</span>") + 13
     i1 = importantLines[12][i0:].index("<")
     playerStats["totalDeaths"] = int(importantLines[12][i0: i0 + i1])
@@ -182,6 +181,7 @@ def getPlayerStatsFromWord(word):
         for elem in link:
             playerName = elem[elem.index("players") + 8:]
             playerName = playerName[playerName.index("/") + 1:]
+            playerName = playerName.replace("%20", " ")
             msg += (" " + playerName + ",")
         msg = msg[:-1]
         msg += "?"
