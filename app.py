@@ -136,6 +136,9 @@ def profile(steamID):
         try:
             button = request.form["searchName"]
             addPlayerToTeam(button, steamID)
+            # update list
+            userProfile = getUserProfile(steamID)
+            userTeam = getUserTeam(userProfile)
         except:
             try:
                 searchResults = hltvScript.getPlayerStatsFromWord(request.form["search"])
