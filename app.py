@@ -4,6 +4,7 @@ import requests
 from flask import Flask, render_template, redirect, request, url_for, g, session
 from flask_openid import OpenID
 from urllib.parse import urlencode, quote
+import csv
 
 
 app = Flask(__name__)
@@ -39,6 +40,7 @@ def index():
 
 steamURL = 'https://steamcommunity.com/openid/login'
 
+# begin not mine
 @app.route('/signin')
 def signIn():
     params = {
@@ -58,10 +60,49 @@ def authorize():
     steamID = request.args["openid.claimed_id"]
     steamID = steamID[steamID.index("/id/") + 4:]
     return redirect(url_for('profile', steamID=steamID))
+# end not mine
 
-@app.route('/profile/<steamID>')
+def getUserProfile(steamID):
+    userProfile = None
+    with open("userData.csv") as csvfile:
+        profileReader = csv.reader(csvfile, delimiter=',')
+        for row in profileReader:
+            if steamID in row:
+                userProfile = row
+    if userProfile == None:
+        with open("userData.csv", "a+") as csvfile:
+            csvfile.write(f"{steamID},[]\n")
+        with open("userData.csv") as csvfile:
+            profileReader = csv.reader(csvfile, delimiter=',')
+            userProfile = profileReader[-1]
+        
+    return userProfile
+
+def getUserTeam(L):
+    return L[1].strip('][').split()
+
+@app.route('/profile/<steamID>', methods=["GET", "POST"])
 def profile(steamID):
     accountName, accountProfilePicture = getUserInfo(steamID)
+    userProfile = getUserProfile(steamID)
+    userTeam = getUserTeam(userProfile)
+
+    if(request.method == "POST"):
+        try:
+            button = request.form["searchName"]
+            print(button)
+        except:
+            try:
+                searchResults = hltvScript.getPlayerStatsFromWord(request.form["search"])
+                if(searchResults == None):
+                    searchResults = "Name not found: " + request.form["search"]
+                if(isinstance(searchResults, str)):
+                    return render_template("profile.html", **locals())
+                    
+                searchName = searchResults['nickname']
+                searchRating = searchResults['rating']
+            except:
+                return render_template("profile.html", **locals())
     return render_template("profile.html",  **locals())
 
 def getUserInfo(steamID):
@@ -73,17 +114,7 @@ def getUserInfo(steamID):
     accountName = playerInfo['response']['players'][0]['personaname']
     accountProfilePicture = playerInfo['response']['players'][0]['avatar']
     return accountName, accountProfilePicture
-
-@app.route('/profile/<steamID>', methods=["POST"])
-def profileWithSearch(steamID):
-    accountName, accountProfilePicture = getUserInfo(steamID)
-    searchResults = hltvScript.getPlayerStatsFromWord(request.form["search"])
-    if(isinstance(searchResults, str)):
-        return render_template("profile.html", **locals())
-    searchName = searchResults['nickname']
-    searchRating = searchResults['rating']
-    return render_template("profile.html", **locals())
-
+    
 # tomorrow add team formation, self stats, saving in csv?
 
 if __name__ == "__main__":

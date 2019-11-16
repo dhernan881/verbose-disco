@@ -12,6 +12,10 @@
     {% if searchName %}
         <p>{{searchName}}</p>
         <p>{{searchRating}}</p>
+        <form method="POST">
+            <input type="hidden" name="searchName" id="searchName" value={{searchName}}>
+            <input type="submit" value="Add to dream team?">
+        </form>
     {% elif searchResults %}
         <p>{{searchResults}}</p>
     {% endif %}

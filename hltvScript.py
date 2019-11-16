@@ -33,7 +33,7 @@ def getFullLinkFromPlayerName(name):
         if name.lower() in lineWithSpaces.lower():
             lines.append(hltvLink + line)
     if(len(lines) == 0):
-        raise Exception("Name not found: " + name)
+        return None
     elif(len(lines) == 1):
         return lines[0]
     else:
@@ -176,6 +176,8 @@ def getPlayerStatsFromLink(link):
 # now let's put it all into one method in case I want to use it this way:
 def getPlayerStatsFromWord(word):
     link = getFullLinkFromPlayerName(word)
+    if(link == None):
+        return None
     if(isinstance(link, list)):
         msg = "Did you mean:"
         for elem in link:
