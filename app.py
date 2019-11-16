@@ -64,7 +64,21 @@ def authorize():
 # end not mine
 
 def getSteamUserStats(steamID):
-    pass
+    steamAPILink = 'https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?appid=730&key='
+    steamAPILink += steamAPIKey
+    steamAPILink += "&steamid="
+    steamAPILink += steamID
+    userSteamStats = requests.get(steamAPILink).json()
+
+    userStats = dict()
+    # just for now, only take K/D
+    for elem in userSteamStats['playerstats']['stats']:
+        if (elem['name'] == 'total_kills'):
+            userStats['totalKills'] = elem['value']
+        elif(elem['name'] == 'total_deaths'):
+            userStats['totalDeaths'] = elem['value']
+    userStats['killDeathRatio'] = userStats['totalKills'] / userStats['totalDeaths']
+    return userStats
 
 def getUserProfile(steamID):
     userProfile = None
@@ -78,13 +92,12 @@ def getUserProfile(steamID):
             csvfile.write(f"{steamID},[]\n")
         with open("userData.csv") as csvfile:
             profileReader = csv.reader(csvfile, delimiter=',')
-            userProfile = profileReader[-1]
+            userProfile = [f'{steamID}','[]']
         
     return userProfile
 
 def getUserTeam(L):
     return ast.literal_eval(L[1])
-    return L[1].strip('][').split()
 
 def addPlayerToTeam(player, steamID):
     userProfile = getUserProfile(steamID)
@@ -92,7 +105,6 @@ def addPlayerToTeam(player, steamID):
     for elem in userTeam:
         elem.replace("'", "")
         elem.replace('"', '')
-    print(len(userTeam))
     if(len(userTeam) < 5 and player not in userTeam):
         userTeam.append(player)
     newRow = [steamID, userTeam]
@@ -112,7 +124,13 @@ def addPlayerToTeam(player, steamID):
 def profile(steamID):
     accountName, accountProfilePicture = getUserInfo(steamID)
     userProfile = getUserProfile(steamID)
-    userTeam = getUserTeam(userProfile)
+    if(len(getUserTeam(userProfile)) > 0):
+        userTeam = getUserTeam(userProfile)
+    else:
+        userTeam = "Search for players to add below!"
+    userStats = getSteamUserStats(steamID)
+    userKillDeath = userStats['killDeathRatio']
+    userKillDeath = round(userKillDeath, 2)
 
     if(request.method == "POST"):
         try:
@@ -139,7 +157,7 @@ def getUserInfo(steamID):
     requestURL += str(steamID)
     playerInfo = requests.get(requestURL).json()
     accountName = playerInfo['response']['players'][0]['personaname']
-    accountProfilePicture = playerInfo['response']['players'][0]['avatar']
+    accountProfilePicture = playerInfo['response']['players'][0]['avatarmedium']
     return accountName, accountProfilePicture
     
 # tomorrow add team formation, self stats, saving in csv?
