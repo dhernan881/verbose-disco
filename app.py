@@ -81,6 +81,24 @@ def getUserProfile(steamID):
 def getUserTeam(L):
     return L[1].strip('][').split()
 
+def addPlayerToTeam(player, steamID):
+    userProfile = getUserProfile(steamID)
+    userTeam = getUserTeam(userProfile)
+    userTeam = userTeam + [player]
+    newRow = [steamID, userTeam]
+
+    with open("userData.csv", "r") as readFile:
+        profileReader = csv.reader(readFile)
+        lines = list(profileReader)
+        for i in range(len(lines)):
+            if(steamID in lines[i]): rowIndex = i
+        print(lines[i])
+        lines[rowIndex] = newRow
+    
+    with open("userData.csv", "w") as writeFile:
+        profileWriter = csv.writer(writeFile)
+        profileWriter.writerows(lines)
+
 @app.route('/profile/<steamID>', methods=["GET", "POST"])
 def profile(steamID):
     accountName, accountProfilePicture = getUserInfo(steamID)
@@ -90,7 +108,7 @@ def profile(steamID):
     if(request.method == "POST"):
         try:
             button = request.form["searchName"]
-            print(button)
+            addPlayerToTeam(button, steamID)
         except:
             try:
                 searchResults = hltvScript.getPlayerStatsFromWord(request.form["search"])
