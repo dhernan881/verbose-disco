@@ -5,6 +5,7 @@ from flask import Flask, render_template, redirect, request, url_for, g, session
 from flask_openid import OpenID
 from urllib.parse import urlencode, quote
 import csv
+import ast
 
 
 app = Flask(__name__)
@@ -62,6 +63,9 @@ def authorize():
     return redirect(url_for('profile', steamID=steamID))
 # end not mine
 
+def getSteamUserStats(steamID):
+    pass
+
 def getUserProfile(steamID):
     userProfile = None
     with open("userData.csv") as csvfile:
@@ -79,12 +83,18 @@ def getUserProfile(steamID):
     return userProfile
 
 def getUserTeam(L):
+    return ast.literal_eval(L[1])
     return L[1].strip('][').split()
 
 def addPlayerToTeam(player, steamID):
     userProfile = getUserProfile(steamID)
     userTeam = getUserTeam(userProfile)
-    userTeam = userTeam + [player]
+    for elem in userTeam:
+        elem.replace("'", "")
+        elem.replace('"', '')
+    print(len(userTeam))
+    if(len(userTeam) < 5 and player not in userTeam):
+        userTeam.append(player)
     newRow = [steamID, userTeam]
 
     with open("userData.csv", "r") as readFile:
@@ -92,7 +102,6 @@ def addPlayerToTeam(player, steamID):
         lines = list(profileReader)
         for i in range(len(lines)):
             if(steamID in lines[i]): rowIndex = i
-        print(lines[i])
         lines[rowIndex] = newRow
     
     with open("userData.csv", "w") as writeFile:
