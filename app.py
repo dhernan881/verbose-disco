@@ -9,26 +9,8 @@ import ast
 
 
 app = Flask(__name__)
-oid = OpenID(app, './OpenID-Store', safe_roots=[])
+# oid = OpenID(app, './OpenID-Store', safe_roots=[])
 steamAPIKey = "99265BB0548A6F48052B8784D88B8A44"
-
-'''
-@app.before_request
-def lookup_current_user():
-    g.user = None
-    if 'openid' in session:
-        openid = session['open']
-        g.user = User.query.filter_by(openid=openid).first()
-
-@app.route('/login', methods=['GET', 'POST'])
-@oid.loginhandler
-'''
-
-'''
-    steamID = request.args["openid.claimed_id"]
-    steamID = steamID[steamID.index("/id/") + 4:]
-    return steamID
-'''
 
 @app.route('/')
 def index():
@@ -41,7 +23,8 @@ def index():
 
 steamURL = 'https://steamcommunity.com/openid/login'
 
-# begin not mine
+# BEGIN NOT MINE
+# from https://github.com/fourcube/minimal-steam-openid
 @app.route('/signin')
 def signIn():
     params = {
@@ -61,8 +44,10 @@ def authorize():
     steamID = request.args["openid.claimed_id"]
     steamID = steamID[steamID.index("/id/") + 4:]
     return redirect(url_for('profile', steamID=steamID))
-# end not mine
+# END NOT MINE
 
+# gets the user's in-game CS:GO stats; will probably be migrated into 
+# another script just for clarity/less clutter
 def getSteamUserStats(steamID):
     steamAPILink = 'https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?appid=730&key='
     steamAPILink += steamAPIKey
@@ -80,6 +65,7 @@ def getSteamUserStats(steamID):
     userStats['killDeathRatio'] = userStats['totalKills'] / userStats['totalDeaths']
     return userStats
 
+# get's the user's profile from csv [steamID, [favoritePlayer]]
 def getUserProfile(steamID):
     userProfile = None
     with open("userData.csv") as csvfile:
@@ -96,30 +82,28 @@ def getUserProfile(steamID):
         
     return userProfile
 
+# gets just the team from a given user profile
 def getUserTeam(L):
     return ast.literal_eval(L[1])
 
-def addPlayerToTeam(player, steamID):
+# sets the user's favoritePlayer in the csv
+def setFavoritePlayer(player, steamID):
     userProfile = getUserProfile(steamID)
-    userTeam = getUserTeam(userProfile)
-    for elem in userTeam:
-        elem.replace("'", "")
-        elem.replace('"', '')
-    if(len(userTeam) < 5 and player not in userTeam):
-        userTeam.append(player)
-    newRow = [steamID, userTeam]
+    newRow = [steamID, [player]]
 
     with open("userData.csv", "r") as readFile:
         profileReader = csv.reader(readFile)
         lines = list(profileReader)
         for i in range(len(lines)):
-            if(steamID in lines[i]): rowIndex = i
+            if(steamID in lines[i]):
+                rowIndex = i
         lines[rowIndex] = newRow
     
     with open("userData.csv", "w") as writeFile:
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
 
+# main profile page, for comparing user stats with their favorite pro's stats
 @app.route('/profile/<steamID>', methods=["GET", "POST"])
 def profile(steamID):
     accountName, accountProfilePicture = getUserInfo(steamID)
@@ -127,15 +111,14 @@ def profile(steamID):
     if(len(getUserTeam(userProfile)) > 0):
         userTeam = getUserTeam(userProfile)
     else:
-        userTeam = "Search for players to add below!"
-    userStats = getSteamUserStats(steamID)
-    userKillDeath = userStats['killDeathRatio']
-    userKillDeath = round(userKillDeath, 2)
+        userStats = getSteamUserStats(steamID)
+        userKillDeath = userStats['killDeathRatio']
+        userKillDeath = round(userKillDeath, 2)
 
     if(request.method == "POST"):
         try:
             button = request.form["searchName"]
-            addPlayerToTeam(button, steamID)
+            setFavoritePlayer(button, steamID)
             # update list
             userProfile = getUserProfile(steamID)
             userTeam = getUserTeam(userProfile)
@@ -148,11 +131,18 @@ def profile(steamID):
                     return render_template("profile.html", **locals())
                     
                 searchName = searchResults['nickname']
+                searchKillDeathRatio = searchResults['killDeathRatio']
                 searchRating = searchResults['rating']
             except:
                 return render_template("profile.html", **locals())
     return render_template("profile.html",  **locals())
 
+# page for recommending ways to improve
+@app.route('/recommendations/<steamID>')
+def recommendations(steamID, option1, option2, option3):
+    accountName, accountProfilePicture = getUserInfo(steamID)
+
+# gets the user's steam info (name and profile picture)
 def getUserInfo(steamID):
     requestURL = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key='
     requestURL += steamAPIKey
@@ -162,8 +152,6 @@ def getUserInfo(steamID):
     accountName = playerInfo['response']['players'][0]['personaname']
     accountProfilePicture = playerInfo['response']['players'][0]['avatarmedium']
     return accountName, accountProfilePicture
-    
-# tomorrow add team formation, self stats, saving in csv?
 
 if __name__ == "__main__":
 	app.run(port="5000")

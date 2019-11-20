@@ -173,6 +173,10 @@ def getPlayerStatsFromLink(link):
     # Done!
     return playerStats
 
+def getMapWinRateFromWord(word, map):
+    link = getFullLinkFromPlayerName(word)
+
+
 # now let's put it all into one method in case I want to use it this way:
 def getPlayerStatsFromWord(word):
     link = getFullLinkFromPlayerName(word)
