@@ -56,14 +56,48 @@ def getSteamUserStats(steamID):
     userSteamStats = requests.get(steamAPILink).json()
 
     userStats = dict()
+    mapsDict = dict()
+    winsDict = dict()
     # just for now, only take K/D
     for elem in userSteamStats['playerstats']['stats']:
-        if (elem['name'] == 'total_kills'):
-            userStats['totalKills'] = elem['value']
-        elif(elem['name'] == 'total_deaths'):
-            userStats['totalDeaths'] = elem['value']
+        if (elem['name'] == 'total_kills'): userStats['totalKills'] = elem['value']
+        elif(elem['name'] == 'total_deaths'): userStats['totalDeaths'] = elem['value']
+        elif(elem['name'] == 'total_kills_headshot'): headshotKills = elem['value']
+        elif(elem['name'] == 'total_rounds_played'): roundsPlayed = elem['value']
+        elif(elem['name'] == 'total_wins'): roundsWon = elem['value']
+        elif(elem['name'] == 'last_match_kills'): lastKills = elem['value']
+        elif(elem['name'] == 'last_match_deaths'): lastDeaths = elem['value']
+        elif('total_rounds_map_de' in elem['name']): mapsDict[elem['name']] = elem['value']
+        elif('total_wins_map_de' in elem['name']): winsDict[elem['name']] = elem['value']
+
+    userStats['overallWinRate'] = roundsWon / roundsPlayed
+    userStats['headshotRatio'] = headshotKills / userStats['totalKills']
     userStats['killDeathRatio'] = userStats['totalKills'] / userStats['totalDeaths']
+    userStats['lastKillDeathRatio'] = lastKills / lastDeaths
+    userStats['favoriteMap'],userStats['favoriteMapWinRate'] = \
+        getFavoriteMapAndWinRate(mapsDict, winsDict)
     return userStats
+    # want kdr (compare to pro overall k/d), headshot %,
+    # favorite map, favorite map win %, 
+    # overall win rate (how to close out more rounds? idk),
+    # last map k/d (compare to pro last match, teach warmup)
+
+def getFavoriteMapAndWinRate(mapsDict, winsDict):
+    favoriteMap = ''
+    favoriteMapRounds = 0
+    favoriteMapRoundWins = 0
+    for map in mapsDict:
+        if mapsDict[map] > favoriteMapRounds:
+            favoriteMap = map[map.find("de_"):]
+            favoriteMapRounds = mapsDict[map]
+
+    # is there a better way to loop through this?
+    for map in winsDict:
+        if favoriteMap in map:
+            favoriteMapRoundWins = winsDict[map]
+    
+    return favoriteMap, favoriteMapRoundWins / favoriteMapRounds
+
 
 # get's the user's profile from csv [steamID, [favoritePlayer]]
 def getUserProfile(steamID):
@@ -81,6 +115,23 @@ def getUserProfile(steamID):
             userProfile = [f'{steamID}','[]']
         
     return userProfile
+
+def getUserLocals(steamID):
+    userStats = getSteamUserStats(steamID)
+    userKillDeath = userStats['killDeathRatio']
+    userKillDeath = round(userKillDeath, 2)
+    userHeadshotPercent = userStats['headshotRatio'] * 100
+    userHeadshotPercent = round(userHeadshotPercent, 2)
+    userOverallWinPercent = userStats['overallWinRate'] * 100
+    userOverallWinPercent = round(userOverallWinPercent, 2)
+    userLastMatchKillDeath = userStats['lastKillDeathRatio']
+    userLastMatchKillDeath = round(userLastMatchKillDeath, 2)
+    userFavoriteMap = userStats['favoriteMap']
+    userFavoriteMapWinRate = userStats['favoriteMapWinRate'] * 100
+    userFavoriteMapWinRate = round(userFavoriteMapWinRate, 2)
+
+    return userKillDeath, userHeadshotPercent, userOverallWinPercent, \
+        userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate
 
 # gets just the team from a given user profile
 def getUserTeam(L):
@@ -110,10 +161,12 @@ def profile(steamID):
     userProfile = getUserProfile(steamID)
     if(len(getUserTeam(userProfile)) > 0):
         userTeam = getUserTeam(userProfile)
-    else:
-        userStats = getSteamUserStats(steamID)
-        userKillDeath = userStats['killDeathRatio']
-        userKillDeath = round(userKillDeath, 2)
+    
+    # since Flask uses Jinja, variables can be passed into the html
+    # as long as they're defined
+    userKillDeath, userHeadshotPercent, userOverallWinPercent, \
+        userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
+            getUserLocals(steamID)
 
     if(request.method == "POST"):
         try:
@@ -132,7 +185,8 @@ def profile(steamID):
                     
                 searchName = searchResults['nickname']
                 searchKillDeathRatio = searchResults['killDeathRatio']
-                searchRating = searchResults['rating']
+                searchHeadshotPercent = searchResults['percentHeadshot']
+                
             except:
                 return render_template("profile.html", **locals())
     return render_template("profile.html",  **locals())

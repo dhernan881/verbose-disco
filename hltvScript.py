@@ -171,11 +171,37 @@ def getPlayerStatsFromLink(link):
     # skip importantLines[23] because it's Rating again
 
     # Done!
+    playerStats['winPercent'], playerStats['lastMatchKillDeathRatio'] = \
+        getMatchStatsFromLink(link)
+    # getFavoriteMapStats
     return playerStats
 
-def getMapWinRateFromWord(word, map):
-    link = getFullLinkFromPlayerName(word)
+def getMatchStatsFromLink(link):
+    i0 = link.index("/players") + 9
+    link = link[:i0] + "matches/" + link[i0:]
+    matchPageLines = requests.get(link)
+    matchPageLines = matchPageLines.text.splitlines()
+    importantLines = []
+    for i in range(len(matchPageLines)):
+        if('<div class="value">' in matchPageLines[i]):
+            importantLines.append(matchPageLines[i].strip())
+        elif('<td class="statsMapPlayed">' in matchPageLines[i]):
+            importantLines.append(matchPageLines[i + 1].strip())
+            break
+    i0 = importantLines[1].index(">") + 1
+    i1 = importantLines[1].index("/") - 2
+    winPercent = float(importantLines[1][i0:i1])
 
+    i0 = importantLines[-1].index(">") + 1
+    i1 = importantLines[-1].index("/") - 1
+    killDeathString = importantLines[-1][i0:i1]
+
+    i = killDeathString.index("-") - 1
+    lastMatchKills = int(killDeathString[:i])
+    lastMatchDeaths = int(killDeathString[i + 2:])
+    lastMatchKillDeathRatio = lastMatchKills / lastMatchDeaths
+
+    return winPercent, lastMatchKillDeathRatio
 
 # now let's put it all into one method in case I want to use it this way:
 def getPlayerStatsFromWord(word):
@@ -193,3 +219,17 @@ def getPlayerStatsFromWord(word):
         msg += "?"
         return msg
     return getPlayerStatsFromLink(link)
+
+def getFavoriteMapStatsFromWord(word, map):
+    link = getFullLinkFromPlayerName(word)
+    i0 = link.index("/players") + 9
+    link = link[:i0] + "matches/" + link[i0:]
+    link = link + "?maps=" + map
+    for i in range(len(matchPageLines)):
+        if('<div class="value">' in matchPageLines[i]):
+            importantLines.append(matchPageLines[i].strip())
+        elif('<td class="statsMapPlayed">' in matchPageLines[i]):
+            importantLines.append(matchPageLines[i + 1].strip())
+            break
+
+print(getPlayerStatsFromWord('zywoo'))

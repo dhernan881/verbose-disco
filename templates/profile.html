@@ -3,10 +3,15 @@
 
 </head>
 <body>
-    <p>{{accountName}}</p>
+    <h2>{{accountName}}</h2>
     <img alt="Profile pic" src={{accountProfilePicture}} width=64 height=64></img>
     <h2>Your Stats:</h2>
     <p>K/D Ratio: {{userKillDeath}}</p>
+    <p>Headshot Percent: {{userHeadshotPercent}} %</p>
+    <p>Round Win Percent: {{userOverallWinPercent}} %</p>
+    <p>Last Match K/D Ratio: {{userLastMatchKillDeath}}</p>
+    <p>Favorite Map: {{userFavoriteMap}}</p>
+    <p>Favorite Map Win Rate: {{userFavoriteMapWinRate}} %</p>
     <h2>Your Favorite Player:</h2>
     <p>{{userTeam}}</p>
     <p>Search for a player!</p>
@@ -14,11 +19,12 @@
         <input name="search">
     </form>
     {% if searchName %}
-        <p>{{searchName}}</p>
-        <p>{{searchRating}}</p>
+        <p>{{searchName}}'s Stats:</p>
+        <p>K/D Ratio: {{searchKillDeathRatio}}</p>
+        <p>Headshot Percent: {{searchHeadshotPercent}} %</p>
         <form method="POST">
             <input type="hidden" name="searchName" id="searchName" value={{searchName}}>
-            <input type="submit" value="Add to dream team?">
+            <input type="submit" value="Set as favorite player?">
         </form>
     {% elif searchResults %}
         <p>{{searchResults}}</p>
