@@ -200,6 +200,7 @@ def getMatchStatsFromLink(link):
     lastMatchKills = int(killDeathString[:i])
     lastMatchDeaths = int(killDeathString[i + 2:])
     lastMatchKillDeathRatio = lastMatchKills / lastMatchDeaths
+    lastMatchKillDeathRatio = round(lastMatchKillDeathRatio, 2)
 
     return winPercent, lastMatchKillDeathRatio
 
@@ -220,11 +221,17 @@ def getPlayerStatsFromWord(word):
         return msg
     return getPlayerStatsFromLink(link)
 
-def getFavoriteMapStatsFromWord(word, map):
+def getFavoriteMapWinPercentFromWord(word, map):
+    # same as normal map stats method but specific to one map
     link = getFullLinkFromPlayerName(word)
     i0 = link.index("/players") + 9
     link = link[:i0] + "matches/" + link[i0:]
     link = link + "?maps=" + map
+
+    matchPageLines = requests.get(link)
+    matchPageLines = matchPageLines.text.splitlines()
+    importantLines = []
+
     for i in range(len(matchPageLines)):
         if('<div class="value">' in matchPageLines[i]):
             importantLines.append(matchPageLines[i].strip())
@@ -232,4 +239,7 @@ def getFavoriteMapStatsFromWord(word, map):
             importantLines.append(matchPageLines[i + 1].strip())
             break
 
-print(getPlayerStatsFromWord('zywoo'))
+    i0 = importantLines[1].index(">") + 1
+    i1 = importantLines[1].index("/") - 2
+    winPercent = float(importantLines[1][i0:i1])
+    return winPercent

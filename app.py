@@ -154,19 +154,38 @@ def setFavoritePlayer(player, steamID):
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
 
+def getHLTVLocals(d, map):
+    name = d['nickname']
+    killDeathRatio = d['killDeathRatio']
+    headshotPercent = d['percentHeadshot']
+    winPercent = d['winPercent']
+    lastMatchKillDeathRatio = d['lastMatchKillDeathRatio']
+    favoriteMapWinPercent = \
+        hltvScript.getFavoriteMapWinPercentFromWord(name, map)
+    
+    return name, killDeathRatio, headshotPercent, winPercent, \
+        lastMatchKillDeathRatio, favoriteMapWinPercent
+
+
 # main profile page, for comparing user stats with their favorite pro's stats
 @app.route('/profile/<steamID>', methods=["GET", "POST"])
 def profile(steamID):
     accountName, accountProfilePicture = getUserInfo(steamID)
     userProfile = getUserProfile(steamID)
-    if(len(getUserTeam(userProfile)) > 0):
-        userTeam = getUserTeam(userProfile)
-    
+
     # since Flask uses Jinja, variables can be passed into the html
     # as long as they're defined
     userKillDeath, userHeadshotPercent, userOverallWinPercent, \
         userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
             getUserLocals(steamID)
+
+    if(len(getUserTeam(userProfile)) > 0):
+        userTeam = getUserTeam(userProfile)[0]
+        userHLTVStats = hltvScript.getPlayerStatsFromWord(userTeam)
+        favoriteName, favoriteKillDeathRatio, favoriteHeadshotPercent, \
+            favoriteWinPercent, favoriteLastMatchKillDeathRatio, \
+                favoriteFavoriteMapWinPercent = \
+                    getHLTVLocals(userHLTVStats, userFavoriteMap)
 
     if(request.method == "POST"):
         try:
@@ -174,7 +193,7 @@ def profile(steamID):
             setFavoritePlayer(button, steamID)
             # update list
             userProfile = getUserProfile(steamID)
-            userTeam = getUserTeam(userProfile)
+            userTeam = getUserTeam(userProfile)[0]
         except:
             try:
                 searchResults = hltvScript.getPlayerStatsFromWord(request.form["search"])
@@ -182,10 +201,11 @@ def profile(steamID):
                     searchResults = "Name not found: " + request.form["search"]
                 if(isinstance(searchResults, str)):
                     return render_template("profile.html", **locals())
-                    
-                searchName = searchResults['nickname']
-                searchKillDeathRatio = searchResults['killDeathRatio']
-                searchHeadshotPercent = searchResults['percentHeadshot']
+                
+                searchName, searchKillDeathRatio, searchHeadshotPercent, \
+                    searchWinPercent, searchLastMatchKillDeathRatio, \
+                        searchFavoriteMapWinPercent = \
+                            getHLTVLocals(searchResults, userFavoriteMap)
                 
             except:
                 return render_template("profile.html", **locals())

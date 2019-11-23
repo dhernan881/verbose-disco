@@ -14,6 +14,14 @@
     <p>Favorite Map Win Rate: {{userFavoriteMapWinRate}} %</p>
     <h2>Your Favorite Player:</h2>
     <p>{{userTeam}}</p>
+    {% if userTeam %}
+        <h3>{{userTeam}}'s Stats:</h3>
+        <p>K/D Ratio: {{favoriteKillDeathRatio}}</p>
+        <p>Headshot Percent: {{favoriteHeadshotPercent}} %</p>
+        <p>Overall Win Rate: {{favoriteWinPercent}} %</p>
+        <p>Last Match K/D Ratio: {{favoriteLastMatchKillDeathRatio}}</p>
+        <p>{{userFavoriteMap}} Win Rate: {{favoriteFavoriteMapWinPercent}} %</p>
+    {% endif %}
     <p>Search for a player!</p>
     <form method="POST">
         <input name="search">
@@ -22,6 +30,9 @@
         <p>{{searchName}}'s Stats:</p>
         <p>K/D Ratio: {{searchKillDeathRatio}}</p>
         <p>Headshot Percent: {{searchHeadshotPercent}} %</p>
+        <p>Overall Win Rate: {{searchWinPercent}} %</p>
+        <p>Last Match K/D Ratio: {{searchLastMatchKillDeathRatio}}</p>
+        <p>{{userFavoriteMap}} Win Rate: {{searchFavoriteMapWinPercent}} %</p>
         <form method="POST">
             <input type="hidden" name="searchName" id="searchName" value={{searchName}}>
             <input type="submit" value="Set as favorite player?">
