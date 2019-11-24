@@ -29,7 +29,7 @@
             {% if userOverallWinPercent / favoriteWinPercent < 0.75 %}
                 <span style="color:red">{{userOverallWinPercent}} %</span>
             {% elif userOverallWinPercent / favoriteWinPercent > 1.25 %}
-                <span style="color:red">{{userOverallWinPercent}} %</span>
+                <span style="color:green">{{userOverallWinPercent}} %</span>
             {% else %}
                 <span>{{userOverallWinPercent}} %</span>
             {% endif %}
@@ -38,7 +38,7 @@
             {% if userLastMatchKillDeath / favoriteLastMatchKillDeath < 0.75 %}
                 <span style="color:red">{{userLastMatchKillDeath}}</span>
             {% elif userLastMatchKillDeath / favoriteLastMatchKillDeath > 1.25 %}
-                <span style="color:red">{{userLastMatchKillDeath}}</span>
+                <span style="color:green">{{userLastMatchKillDeath}}</span>
             {% else %}
                 <span>{{userLastMatchKillDeath}}</span>
             {% endif %}
@@ -48,7 +48,7 @@
             {% if userFavoriteMapWinRate / favoriteFavoriteMapWinPercent < 0.75 %}
                 <span style="color:red">{{userLastMatchKillDeath}} %</span>
             {% elif userFavoriteMapWinRate / favoriteFavoriteMapWinPercent > 1.25 %}
-                <span style="color:red">{{userLastMatchKillDeath}} %</span>
+                <span style="color:green">{{userLastMatchKillDeath}} %</span>
             {% else %}
                 <span>{{userFavoriteMapWinRate}} %</span>
             {% endif %}
@@ -56,7 +56,7 @@
     {% else %}
         <p>K/D Ratio: {{userKillDeath}}</p>
         <p>Headshot Percent: {{userHeadshotPercent}} %</p>
-        <p>Round Win Percent: {{userOverallWinPercent}} %</p>
+        <p>Overall Win Rate: {{userOverallWinPercent}} %</p>
         <p>Last Match K/D Ratio: {{userLastMatchKillDeath}}</p>
         <p>Favorite Map: {{userFavoriteMap}}</p>
         <p>Favorite Map Win Rate: {{userFavoriteMapWinRate}} %</p>
@@ -89,4 +89,9 @@
     {% elif searchResults %}
         <p>{{searchResults}}</p>
     {% endif %}
+
+{% if lowest1 %}
+    <h2>Want to be as good as {{userTeam}}? We've identified these three areas for your improvement:</h2>
+    <p>{{lowest1}}, {{lowest2}}, {{lowest3}}</p>
+{% endif %}
 </body>

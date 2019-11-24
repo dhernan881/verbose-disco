@@ -116,6 +116,7 @@ def getUserProfile(steamID):
         
     return userProfile
 
+# needed for jinja
 def getUserLocals(steamID):
     userStats = getSteamUserStats(steamID)
     userKillDeath = userStats['killDeathRatio']
@@ -154,6 +155,7 @@ def setFavoritePlayer(player, steamID):
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
 
+# needed for jinja
 def getHLTVLocals(d, map):
     name = d['nickname']
     killDeathRatio = d['killDeathRatio']
@@ -168,13 +170,13 @@ def getHLTVLocals(d, map):
 
 
 # main profile page, for comparing user stats with their favorite pro's stats
+# since Flask uses Jinja, variables can be passed into the html
+# AS LONG AS THEY'RE DEFINED AS LOCALS
 @app.route('/profile/<steamID>', methods=["GET", "POST"])
 def profile(steamID):
     accountName, accountProfilePicture = getUserInfo(steamID)
     userProfile = getUserProfile(steamID)
 
-    # since Flask uses Jinja, variables can be passed into the html
-    # as long as they're defined
     userKillDeath, userHeadshotPercent, userOverallWinPercent, \
         userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
             getUserLocals(steamID)
@@ -185,7 +187,10 @@ def profile(steamID):
         favoriteName, favoriteKillDeath, favoriteHeadshotPercent, \
             favoriteWinPercent, favoriteLastMatchKillDeath, \
                 favoriteFavoriteMapWinPercent = \
-                    getHLTVLocals(userHLTVStats, userFavoriteMap)
+                    getHLTVLocals(userHLTVStats, userFavoriteMap)  
+
+        userStatsDict = getUserStatsDict(steamID)
+        lowest1, lowest2, lowest3 = getThreeLowestStats(userStatsDict, userHLTVStats)
 
     if(request.method == "POST"):
         try:
@@ -195,12 +200,16 @@ def profile(steamID):
             userProfile = getUserProfile(steamID)
             userTeam = getUserTeam(userProfile)[0]
 
-            # have to account for first time adding a player
+            # everything that follows is repeated from before because
+            # you have to account for first time adding a player
             userHLTVStats = hltvScript.getPlayerStatsFromWord(button)
             favoriteName, favoriteKillDeath, favoriteHeadshotPercent, \
             favoriteWinPercent, favoriteLastMatchKillDeath, \
                 favoriteFavoriteMapWinPercent = \
                     getHLTVLocals(userHLTVStats, userFavoriteMap)
+            userStatsDict = getUserStatsDict(steamID)
+            lowest1, lowest2, lowest3 = getThreeLowestStats(userStatsDict, userHLTVStats)
+
         except:
             try:
                 searchResults = hltvScript.getPlayerStatsFromWord(request.form["search"])
@@ -218,8 +227,47 @@ def profile(steamID):
                 return render_template("profile.html", **locals())
     return render_template("profile.html",  **locals())
 
-def compareStats(steamID):
-    pass
+# put everything in a dict for easier access than just the values listed out
+def getUserStatsDict(steamID):
+    userKillDeath, userHeadshotPercent, userOverallWinPercent, \
+        userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
+            getUserLocals(steamID)
+    d = dict()
+    d['userKillDeath'] = userKillDeath
+    d['userHeadshotPercent'] = userHeadshotPercent
+    d['userOverallWinPercent'] = userOverallWinPercent
+    d['userLastMatchKillDeath'] = userLastMatchKillDeath
+    d['userFavoriteMap'] = userFavoriteMap
+    d['userFavoriteMapWinRate'] = userFavoriteMapWinRate
+    
+    return d
+
+def getThreeLowestStats(userDict, hltvDict):
+    fractions = dict()
+
+    killDeathFraction = userDict['userKillDeath'] / hltvDict['killDeathRatio']
+    headshotFraction = userDict['userHeadshotPercent'] / hltvDict['percentHeadshot']
+    winPercentFraction = userDict['userOverallWinPercent'] / hltvDict['winPercent']
+    lastKillDeathFraction = userDict['userLastMatchKillDeath'] / hltvDict['lastMatchKillDeathRatio']
+    proNickname = hltvDict['nickname']
+    favoriteMapFraction = userDict['userFavoriteMapWinRate'] / \
+        hltvScript.getFavoriteMapWinPercentFromWord(proNickname, userDict['userFavoriteMap'])
+
+    fractions['K/D Ratio'] = killDeathFraction
+    fractions['Headshot %'] = headshotFraction
+    fractions['Overall Win Rate'] = winPercentFraction
+    fractions['Last Match K/D Ratio'] = lastKillDeathFraction
+    fractions[f'{userDict["userFavoriteMap"]} Win Rate'] = favoriteMapFraction
+
+    sortedValues = sorted(fractions.values())
+    lowest1, lowest2, lowest3 = sortedValues[0], sortedValues[1], sortedValues[2]
+
+    for elem in fractions:
+        if(fractions[elem] == lowest1): lowest1 = elem
+        elif(fractions[elem] == lowest2): lowest2 = elem
+        elif(fractions[elem] == lowest3): lowest3 = elem
+    
+    return lowest1, lowest2, lowest3
 
 # page for recommending ways to improve
 @app.route('/recommendations/<steamID>')
