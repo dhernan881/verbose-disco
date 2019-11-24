@@ -6,20 +6,69 @@
     <h2>{{accountName}}</h2>
     <img alt="Profile pic" src={{accountProfilePicture}} width=64 height=64></img>
     <h2>Your Stats:</h2>
-    <p>K/D Ratio: {{userKillDeath}}</p>
-    <p>Headshot Percent: {{userHeadshotPercent}} %</p>
-    <p>Round Win Percent: {{userOverallWinPercent}} %</p>
-    <p>Last Match K/D Ratio: {{userLastMatchKillDeath}}</p>
-    <p>Favorite Map: {{userFavoriteMap}}</p>
-    <p>Favorite Map Win Rate: {{userFavoriteMapWinRate}} %</p>
+    {% if userTeam %}
+        <p>K/D Ratio:
+            {% if userKillDeath / favoriteKillDeath < 0.75 %}
+                <span style="color:red">{{userKillDeath}}</span>
+            {% elif userKillDeath / favoriteKillDeath > 1.25 %}
+                <span style="color:green">{{userKillDeath}}</span>
+            {% else %}
+                <span>{{userKillDeath}}</span>
+            {% endif %}
+        </p>
+        <p>Headshot Percent:
+            {% if userHeadshotPercent / favoriteHeadshotPercent < 0.75 %}
+                <span style="color:red">{{userHeadshotPercent}} %</span>
+            {% elif userHeadshotPercent / favoriteHeadshotPercent > 1.25 %}
+                <span style="color:green">{{userHeadshotPercent}} %</span>
+            {% else %}
+                <span>{{userHeadshotPercent}} %</span>
+            {% endif %}
+        </p>
+        <p>Round Win Percent:
+            {% if userOverallWinPercent / favoriteWinPercent < 0.75 %}
+                <span style="color:red">{{userOverallWinPercent}} %</span>
+            {% elif userOverallWinPercent / favoriteWinPercent > 1.25 %}
+                <span style="color:red">{{userOverallWinPercent}} %</span>
+            {% else %}
+                <span>{{userOverallWinPercent}} %</span>
+            {% endif %}
+        </p>
+        <p>Last Match K/D Ratio:
+            {% if userLastMatchKillDeath / favoriteLastMatchKillDeath < 0.75 %}
+                <span style="color:red">{{userLastMatchKillDeath}}</span>
+            {% elif userLastMatchKillDeath / favoriteLastMatchKillDeath > 1.25 %}
+                <span style="color:red">{{userLastMatchKillDeath}}</span>
+            {% else %}
+                <span>{{userLastMatchKillDeath}}</span>
+            {% endif %}
+        </p>
+        <p>Favorite Map: {{userFavoriteMap}}</p>
+        <p>Favorite Map Win Rate:
+            {% if userFavoriteMapWinRate / favoriteFavoriteMapWinPercent < 0.75 %}
+                <span style="color:red">{{userLastMatchKillDeath}} %</span>
+            {% elif userFavoriteMapWinRate / favoriteFavoriteMapWinPercent > 1.25 %}
+                <span style="color:red">{{userLastMatchKillDeath}} %</span>
+            {% else %}
+                <span>{{userFavoriteMapWinRate}} %</span>
+            {% endif %}
+        </p>
+    {% else %}
+        <p>K/D Ratio: {{userKillDeath}}</p>
+        <p>Headshot Percent: {{userHeadshotPercent}} %</p>
+        <p>Round Win Percent: {{userOverallWinPercent}} %</p>
+        <p>Last Match K/D Ratio: {{userLastMatchKillDeath}}</p>
+        <p>Favorite Map: {{userFavoriteMap}}</p>
+        <p>Favorite Map Win Rate: {{userFavoriteMapWinRate}} %</p>
+    {% endif %}
     <h2>Your Favorite Player:</h2>
     <p>{{userTeam}}</p>
     {% if userTeam %}
         <h3>{{userTeam}}'s Stats:</h3>
-        <p>K/D Ratio: {{favoriteKillDeathRatio}}</p>
+        <p>K/D Ratio: {{favoriteKillDeath}}</p>
         <p>Headshot Percent: {{favoriteHeadshotPercent}} %</p>
         <p>Overall Win Rate: {{favoriteWinPercent}} %</p>
-        <p>Last Match K/D Ratio: {{favoriteLastMatchKillDeathRatio}}</p>
+        <p>Last Match K/D Ratio: {{favoriteLastMatchKillDeath}}</p>
         <p>{{userFavoriteMap}} Win Rate: {{favoriteFavoriteMapWinPercent}} %</p>
     {% endif %}
     <p>Search for a player!</p>
@@ -30,7 +79,7 @@
         <p>{{searchName}}'s Stats:</p>
         <p>K/D Ratio: {{searchKillDeathRatio}}</p>
         <p>Headshot Percent: {{searchHeadshotPercent}} %</p>
-        <p>Overall Win Rate: {{searchWinPercent}} %</p>
+        <p>Overall Win Percent: {{searchWinPercent}} %</p>
         <p>Last Match K/D Ratio: {{searchLastMatchKillDeathRatio}}</p>
         <p>{{userFavoriteMap}} Win Rate: {{searchFavoriteMapWinPercent}} %</p>
         <form method="POST">

@@ -178,12 +178,12 @@ def profile(steamID):
     userKillDeath, userHeadshotPercent, userOverallWinPercent, \
         userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
             getUserLocals(steamID)
-
+    
     if(len(getUserTeam(userProfile)) > 0):
         userTeam = getUserTeam(userProfile)[0]
         userHLTVStats = hltvScript.getPlayerStatsFromWord(userTeam)
-        favoriteName, favoriteKillDeathRatio, favoriteHeadshotPercent, \
-            favoriteWinPercent, favoriteLastMatchKillDeathRatio, \
+        favoriteName, favoriteKillDeath, favoriteHeadshotPercent, \
+            favoriteWinPercent, favoriteLastMatchKillDeath, \
                 favoriteFavoriteMapWinPercent = \
                     getHLTVLocals(userHLTVStats, userFavoriteMap)
 
@@ -194,6 +194,13 @@ def profile(steamID):
             # update list
             userProfile = getUserProfile(steamID)
             userTeam = getUserTeam(userProfile)[0]
+
+            # have to account for first time adding a player
+            userHLTVStats = hltvScript.getPlayerStatsFromWord(button)
+            favoriteName, favoriteKillDeath, favoriteHeadshotPercent, \
+            favoriteWinPercent, favoriteLastMatchKillDeath, \
+                favoriteFavoriteMapWinPercent = \
+                    getHLTVLocals(userHLTVStats, userFavoriteMap)
         except:
             try:
                 searchResults = hltvScript.getPlayerStatsFromWord(request.form["search"])
@@ -210,6 +217,9 @@ def profile(steamID):
             except:
                 return render_template("profile.html", **locals())
     return render_template("profile.html",  **locals())
+
+def compareStats(steamID):
+    pass
 
 # page for recommending ways to improve
 @app.route('/recommendations/<steamID>')
