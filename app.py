@@ -321,7 +321,9 @@ def profile(steamID):
 
 @app.route('/K/D Ratio/<steamID>')
 def kdRatioPage(steamID):
-    return '''<p>hello world</p>'''
+    # link is to youtube search
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/33cSw17")
+    return render_template("kdPage.html", **locals())
 
 @app.route('/Headshot %/<steamID>')
 def headshotPage(steamID):
@@ -338,8 +340,12 @@ def overallWinRatePage(steamID):
     return render_template("winRatePage.html", **locals())
 
 @app.route('/Last Match K/D Ratio/<steamID>')
-def lastMatchKDRatioPage(steamID):
-    return '''<p>hello world</p>'''
+def warmupPage(steamID):
+    # link is to steam workshop search
+    workshopLink = getFirstWorkshopItemLink("https://bit.ly/2OiDpPJ")
+    # link is to youtube search
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/2qLrUqO")
+    return render_template("warmupPage.html", **locals())
 
 @app.route('/de_dust2 Win Rate/<steamID>')
 def dust2Page(steamID):
@@ -364,8 +370,6 @@ def vertigoPage(steamID):
 @app.route('/de_cbble Win Rate/<steamID>')
 def cbblePage(steamID):
     return '''<p>hello world</p>'''
-
-#@app.route('')
 
 # page for recommending ways to improve
 @app.route('/recommendations/<steamID>')
