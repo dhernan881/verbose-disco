@@ -349,27 +349,41 @@ def warmupPage(steamID):
 
 @app.route('/de_dust2 Win Rate/<steamID>')
 def dust2Page(steamID):
-    return '''<p>hello world</p>'''
+    # link is to steam workshop search IF I USED LINK SHORTENER IT DOESN'T WORK
+    workshopLink = getFirstWorkshopItemLink("https://steamcommunity.com/workshop/browse/?appid=730&searchtext=de_dust2+practice&childpublishedfileid=0&browsesort=trend&section=readytouseitems")
+    # link is to youtube search
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/37COse9")
+    return render_template("dust2page.html", **locals())
 
 @app.route('/de_inferno Win Rate/<steamID>')
 def infernoPage(steamID):
-    return '''<p>hello world</p>'''
+    workshopLink = getFirstWorkshopItemLink("https://steamcommunity.com/workshop/browse/?appid=730&searchtext=de_inferno+practice&childpublishedfileid=0&browsesort=trend&section=readytouseitems")
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/35wlJps")
+    return render_template("infernoPage.html", **locals())
 
 @app.route('/de_nuke Win Rate/<steamID>')
 def nukePage(steamID):
-    return '''<p>hello world</p>'''
+    workshopLink = getFirstWorkshopItemLink("https://steamcommunity.com/workshop/browse/?appid=730&searchtext=de_nuke+practice&childpublishedfileid=0&browsesort=trend&section=readytouseitems")
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/34lbeoQ")
+    return render_template("nukePage.html", **locals())
 
 @app.route('/de_train Win Rate/<steamID>')
 def trainPage(steamID):
-    return '''<p>hello world</p>'''
+    workshopLink = getFirstWorkshopItemLink("https://steamcommunity.com/workshop/browse/?appid=730&searchtext=de_train+practice&childpublishedfileid=0&browsesort=trend&section=readytouseitems")
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/37CVIqj")
+    return render_template("trainPage.html", **locals())
 
 @app.route('/de_vertigo Win Rate/<steamID>')
 def vertigoPage(steamID):
-    return '''<p>hello world</p>'''
+    workshopLink = getFirstWorkshopItemLink("https://steamcommunity.com/workshop/browse/?appid=730&searchtext=de_vertigo+practice&childpublishedfileid=0&browsesort=trend&section=readytouseitems")
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/35xP5DL")
+    return render_template("vertigoPage.html", **locals())
 
 @app.route('/de_cbble Win Rate/<steamID>')
 def cbblePage(steamID):
-    return '''<p>hello world</p>'''
+    workshopLink = getFirstWorkshopItemLink("https://steamcommunity.com/workshop/browse/?appid=730&searchtext=cobblestone+practice&childpublishedfileid=0&browsesort=trend&section=readytouseitems")
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/2XNfnPG")
+    return render_template("cbblePage.html", **locals())
 
 # page for recommending ways to improve
 @app.route('/recommendations/<steamID>')
