@@ -98,6 +98,16 @@ def getFavoriteMapAndWinRate(mapsDict, winsDict):
     
     return favoriteMap, favoriteMapRoundWins / favoriteMapRounds
 
+# gets the user's steam info (name and profile picture)
+def getUserInfo(steamID):
+    requestURL = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key='
+    requestURL += steamAPIKey
+    requestURL += '&steamids='
+    requestURL += str(steamID)
+    playerInfo = requests.get(requestURL).json()
+    accountName = playerInfo['response']['players'][0]['personaname']
+    accountProfilePicture = playerInfo['response']['players'][0]['avatarmedium']
+    return accountName, accountProfilePicture
 
 # get's the user's profile from csv [steamID, [favoritePlayer]]
 def getUserProfile(steamID):
@@ -162,12 +172,94 @@ def getHLTVLocals(d, map):
     headshotPercent = d['percentHeadshot']
     winPercent = d['winPercent']
     lastMatchKillDeathRatio = d['lastMatchKillDeathRatio']
-    favoriteMapWinPercent = \
-        hltvScript.getFavoriteMapWinPercentFromWord(name, map)
+
+    legalMaps = ['de_dust2', 'de_inferno', 'de_nuke', 'de_train',
+    'de_vertigo', 'de_cbble']
+    if map in legalMaps:
+        favoriteMapWinPercent = \
+            hltvScript.getFavoriteMapWinPercentFromWord(name, map)
+    else:
+        favoriteMapWinPercent = "Map not in HLTV database"
     
     return name, killDeathRatio, headshotPercent, winPercent, \
         lastMatchKillDeathRatio, favoriteMapWinPercent
 
+# put everything in a dict for easier access than just the values listed out
+def getUserStatsDict(steamID):
+    userKillDeath, userHeadshotPercent, userOverallWinPercent, \
+        userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
+            getUserLocals(steamID)
+    d = dict()
+    d['userKillDeath'] = userKillDeath
+    d['userHeadshotPercent'] = userHeadshotPercent
+    d['userOverallWinPercent'] = userOverallWinPercent
+    d['userLastMatchKillDeath'] = userLastMatchKillDeath
+    d['userFavoriteMap'] = userFavoriteMap
+    d['userFavoriteMapWinRate'] = userFavoriteMapWinRate
+    
+    return d
+
+def getThreeLowestStats(userDict, hltvDict):
+
+    # So the steam API is old and they have made almost no updates since it
+    # came out. The only actual competitive maps that are tracked are the ones
+    # in legalMaps
+    legalMaps = ['de_dust2', 'de_inferno', 'de_nuke', 'de_train',
+    'de_vertigo', 'de_cbble']
+    fractions = dict()
+
+    killDeathFraction = userDict['userKillDeath'] / hltvDict['killDeathRatio']
+    headshotFraction = userDict['userHeadshotPercent'] / hltvDict['percentHeadshot']
+    winPercentFraction = userDict['userOverallWinPercent'] / hltvDict['winPercent']
+    lastKillDeathFraction = userDict['userLastMatchKillDeath'] / hltvDict['lastMatchKillDeathRatio']
+    proNickname = hltvDict['nickname']
+    favoriteMapFraction = userDict['userFavoriteMapWinRate'] / \
+        hltvScript.getFavoriteMapWinPercentFromWord(proNickname, userDict['userFavoriteMap'])
+
+    fractions['K/D Ratio'] = killDeathFraction
+    fractions['Headshot %'] = headshotFraction
+    fractions['Overall Win Rate'] = winPercentFraction
+    fractions['Last Match K/D Ratio'] = lastKillDeathFraction
+    if(userDict["userFavoriteMap"] in legalMaps):
+        fractions[f'{userDict["userFavoriteMap"]} Win Rate'] = favoriteMapFraction
+
+    sortedValues = sorted(fractions.values())
+    lowest1, lowest2, lowest3 = sortedValues[0], sortedValues[1], sortedValues[2]
+
+    for elem in fractions:
+        if(fractions[elem] == lowest1): lowest1 = elem
+        elif(fractions[elem] == lowest2): lowest2 = elem
+        elif(fractions[elem] == lowest3): lowest3 = elem
+    
+    return lowest1, lowest2, lowest3
+
+def getFirstWorkshopItemLink(workshopLink):
+    workshopRequest = requests.get(workshopLink).text
+    # loop until we get to the first item:
+    lines = workshopRequest.splitlines()
+    for i in range(len(lines)):
+        if("workshopBrowseRow" in lines[i]):
+            j0 = lines[i + 1].index('"') + 1
+            j1 = lines[i + 1][j0:].index('"')
+            link = lines[i + 1][j0: j0 + j1]
+            return link
+
+def getFirstYoutubeThumbnailAndLink(link):
+    youtubeRequest = requests.get(link).text.splitlines()
+    for i in range(len(youtubeRequest)):
+        if ('height="138"' in youtubeRequest[i]):
+            linkLine = youtubeRequest[i-1]
+            imgLine = youtubeRequest[i]
+            break
+    i0 = linkLine.index("href=") + 6
+    i1 = linkLine[i0:].index('"')
+    link = "http://youtube.com" + linkLine[i0:i0 + i1]
+    
+    i0 = imgLine.index("src=") + 5
+    i1 = imgLine[i0:].index('"')
+    image = imgLine[i0:i0 + i1]
+
+    return link,image
 
 # main profile page, for comparing user stats with their favorite pro's stats
 # since Flask uses Jinja, variables can be passed into the html
@@ -227,63 +319,58 @@ def profile(steamID):
                 return render_template("profile.html", **locals())
     return render_template("profile.html",  **locals())
 
-# put everything in a dict for easier access than just the values listed out
-def getUserStatsDict(steamID):
-    userKillDeath, userHeadshotPercent, userOverallWinPercent, \
-        userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
-            getUserLocals(steamID)
-    d = dict()
-    d['userKillDeath'] = userKillDeath
-    d['userHeadshotPercent'] = userHeadshotPercent
-    d['userOverallWinPercent'] = userOverallWinPercent
-    d['userLastMatchKillDeath'] = userLastMatchKillDeath
-    d['userFavoriteMap'] = userFavoriteMap
-    d['userFavoriteMapWinRate'] = userFavoriteMapWinRate
-    
-    return d
+@app.route('/K/D Ratio/<steamID>')
+def kdRatioPage(steamID):
+    return '''<p>hello world</p>'''
 
-def getThreeLowestStats(userDict, hltvDict):
-    fractions = dict()
+@app.route('/Headshot %/<steamID>')
+def headshotPage(steamID):
+    # link is to steam workshop search
+    workshopLink = getFirstWorkshopItemLink("https://bit.ly/37BWQKH")
+    # link is to youtube search
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/2QO4cVN")
+    return render_template("headshotPage.html", **locals())
 
-    killDeathFraction = userDict['userKillDeath'] / hltvDict['killDeathRatio']
-    headshotFraction = userDict['userHeadshotPercent'] / hltvDict['percentHeadshot']
-    winPercentFraction = userDict['userOverallWinPercent'] / hltvDict['winPercent']
-    lastKillDeathFraction = userDict['userLastMatchKillDeath'] / hltvDict['lastMatchKillDeathRatio']
-    proNickname = hltvDict['nickname']
-    favoriteMapFraction = userDict['userFavoriteMapWinRate'] / \
-        hltvScript.getFavoriteMapWinPercentFromWord(proNickname, userDict['userFavoriteMap'])
+@app.route('/Overall Win Rate/<steamID>')
+def overallWinRatePage(steamID):
+    # link is to youtube search
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/34fpwHC")
+    return render_template("winRatePage.html", **locals())
 
-    fractions['K/D Ratio'] = killDeathFraction
-    fractions['Headshot %'] = headshotFraction
-    fractions['Overall Win Rate'] = winPercentFraction
-    fractions['Last Match K/D Ratio'] = lastKillDeathFraction
-    fractions[f'{userDict["userFavoriteMap"]} Win Rate'] = favoriteMapFraction
+@app.route('/Last Match K/D Ratio/<steamID>')
+def lastMatchKDRatioPage(steamID):
+    return '''<p>hello world</p>'''
 
-    sortedValues = sorted(fractions.values())
-    lowest1, lowest2, lowest3 = sortedValues[0], sortedValues[1], sortedValues[2]
+@app.route('/de_dust2 Win Rate/<steamID>')
+def dust2Page(steamID):
+    return '''<p>hello world</p>'''
 
-    for elem in fractions:
-        if(fractions[elem] == lowest1): lowest1 = elem
-        elif(fractions[elem] == lowest2): lowest2 = elem
-        elif(fractions[elem] == lowest3): lowest3 = elem
-    
-    return lowest1, lowest2, lowest3
+@app.route('/de_inferno Win Rate/<steamID>')
+def infernoPage(steamID):
+    return '''<p>hello world</p>'''
+
+@app.route('/de_nuke Win Rate/<steamID>')
+def nukePage(steamID):
+    return '''<p>hello world</p>'''
+
+@app.route('/de_train Win Rate/<steamID>')
+def trainPage(steamID):
+    return '''<p>hello world</p>'''
+
+@app.route('/de_vertigo Win Rate/<steamID>')
+def vertigoPage(steamID):
+    return '''<p>hello world</p>'''
+
+@app.route('/de_cbble Win Rate/<steamID>')
+def cbblePage(steamID):
+    return '''<p>hello world</p>'''
+
+#@app.route('')
 
 # page for recommending ways to improve
 @app.route('/recommendations/<steamID>')
-def recommendations(steamID, option1, option2, option3):
+def recommendations():
     accountName, accountProfilePicture = getUserInfo(steamID)
-
-# gets the user's steam info (name and profile picture)
-def getUserInfo(steamID):
-    requestURL = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key='
-    requestURL += steamAPIKey
-    requestURL += '&steamids='
-    requestURL += str(steamID)
-    playerInfo = requests.get(requestURL).json()
-    accountName = playerInfo['response']['players'][0]['personaname']
-    accountProfilePicture = playerInfo['response']['players'][0]['avatarmedium']
-    return accountName, accountProfilePicture
 
 if __name__ == "__main__":
 	app.run(port="5000")

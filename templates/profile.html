@@ -92,6 +92,10 @@
 
 {% if lowest1 %}
     <h2>Want to be as good as {{userTeam}}? We've identified these three areas for your improvement:</h2>
-    <p>{{lowest1}}, {{lowest2}}, {{lowest3}}</p>
+    <p>
+        <span><a href="/{{lowest1}}/{{steamID}}">{{lowest1}}</a>, </span>
+        <span><a href="/{{lowest2}}/{{steamID}}">{{lowest2}}</a>, </span>
+        <span><a href="/{{lowest3}}/{{steamID}}">{{lowest3}}</a></span>
+    </p>
 {% endif %}
 </body>
