@@ -385,10 +385,28 @@ def cbblePage(steamID):
     youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/2XNfnPG")
     return render_template("cbblePage.html", **locals())
 
+@app.route('/de_cache Win Rate/<steamID>')
+def cachePage(steamID):
+    workshopLink = getFirstWorkshopItemLink("https://steamcommunity.com/workshop/browse/?appid=730&searchtext=cache+practice&browsesort=trend&section=items&actualsort=trend&p=1&days=7")
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/34ltRsM")
+    return render_template("cachePage.html", **locals())
+
+@app.route('/de_mirage Win Rate/<steamID>')
+def miragePage(steamID):
+    workshopLink = getFirstWorkshopItemLink("https://steamcommunity.com/workshop/browse/?appid=730&searchtext=mirage+practice&browsesort=trend&section=items&actualsort=trend&p=1&days=7")
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/34l0iHz")
+    return render_template("miragePage.html", **locals())
+
+@app.route('/de_overpass Win Rate/<steamID>')
+def overpassPage(steamID):
+    workshopLink = getFirstWorkshopItemLink("https://steamcommunity.com/workshop/browse/?appid=730&searchtext=overpass+practice&browsesort=trend&section=items&actualsort=trend&p=1&days=7")
+    youtubeLink,thumbnail = getFirstYoutubeThumbnailAndLink("https://bit.ly/37HC2Sr")
+    return render_template("overpassPage.html", **locals())
+
 # page for recommending ways to improve
 @app.route('/recommendations/<steamID>')
-def recommendations():
-    accountName, accountProfilePicture = getUserInfo(steamID)
+def recommendations(steamID):
+    return render_template("recommendations.html", **locals())
 
 if __name__ == "__main__":
 	app.run(port="5000")
