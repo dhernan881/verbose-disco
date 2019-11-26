@@ -71,12 +71,13 @@
         <p>Last Match K/D Ratio: {{favoriteLastMatchKillDeath}}</p>
         <p>{{userFavoriteMap}} Win Rate: {{favoriteFavoriteMapWinPercent}} %</p>
     {% endif %}
-    <p>Search for a player!</p>
+    <br>
+    <p>Search for another player below!</p>
     <form method="POST">
         <input name="search">
     </form>
     {% if searchName %}
-        <p>{{searchName}}'s Stats:</p>
+        <h3>{{searchName}}'s Stats:</h3>
         <p>K/D Ratio: {{searchKillDeathRatio}}</p>
         <p>Headshot Percent: {{searchHeadshotPercent}} %</p>
         <p>Overall Win Percent: {{searchWinPercent}} %</p>
@@ -98,4 +99,6 @@
         <span><a href="/{{lowest3}}/{{steamID}}">{{lowest3}}</a></span>
     </p>
 {% endif %}
+<br>
+<h3><a href="/recommendations/{{steamID}}">View our full list of recommendations here!</a></h3>
 </body>

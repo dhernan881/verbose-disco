@@ -14,12 +14,13 @@ steamAPIKey = "99265BB0548A6F48052B8784D88B8A44"
 
 @app.route('/')
 def index():
-    return '''
-    <a href="/signin">
-        <img alt="Sign in with steam" src="https://bit.ly/2QkePzb"
-        width=118 height=51></img>
-    </a>
-    '''
+    return render_template('index.html')
+
+@app.route('/login-error')
+def loginError():
+    errormsg = '''To change privacy settings,
+    Go to your profile -> Edit Profile -> My Profile (set to Public) -> Game Details (set to Public)'''
+    return render_template('index.html', **locals())
 
 steamURL = 'https://steamcommunity.com/openid/login'
 
@@ -266,12 +267,15 @@ def getFirstYoutubeThumbnailAndLink(link):
 # AS LONG AS THEY'RE DEFINED AS LOCALS
 @app.route('/profile/<steamID>', methods=["GET", "POST"])
 def profile(steamID):
-    accountName, accountProfilePicture = getUserInfo(steamID)
-    userProfile = getUserProfile(steamID)
+    try:
+        accountName, accountProfilePicture = getUserInfo(steamID)
+        userProfile = getUserProfile(steamID)
 
-    userKillDeath, userHeadshotPercent, userOverallWinPercent, \
-        userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
-            getUserLocals(steamID)
+        userKillDeath, userHeadshotPercent, userOverallWinPercent, \
+            userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
+                getUserLocals(steamID)
+    except:
+        return redirect(url_for('loginError'))
     
     if(len(getUserTeam(userProfile)) > 0):
         userTeam = getUserTeam(userProfile)[0]
