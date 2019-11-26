@@ -9,13 +9,14 @@ import ast
 
 
 app = Flask(__name__)
-# oid = OpenID(app, './OpenID-Store', safe_roots=[])
 steamAPIKey = "99265BB0548A6F48052B8784D88B8A44"
 
+# landing/index page
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# landing page with error message for private accounts
 @app.route('/login-error')
 def loginError():
     errormsg = '''To change privacy settings,
@@ -83,6 +84,9 @@ def getSteamUserStats(steamID):
     # overall win rate (how to close out more rounds? idk),
     # last map k/d (compare to pro last match, teach warmup)
 
+# get's the user's "favorite" map (i.e. one with the most rounds played)
+# and their winrate on that map
+# unfortunately the map is de_dust2 for pretty much everyone cuz it's so popular
 def getFavoriteMapAndWinRate(mapsDict, winsDict):
     favoriteMap = ''
     favoriteMapRounds = 0
@@ -128,6 +132,7 @@ def getUserProfile(steamID):
     return userProfile
 
 # needed for jinja
+# returns a tuple of variables so I can define them in web functions
 def getUserLocals(steamID):
     userStats = getSteamUserStats(steamID)
     userKillDeath = userStats['killDeathRatio']
@@ -167,6 +172,7 @@ def setFavoritePlayer(player, steamID):
         profileWriter.writerows(lines)
 
 # needed for jinja
+# returns a tuple of variables so I can define them in web functions
 def getHLTVLocals(d, map):
     name = d['nickname']
     killDeathRatio = d['killDeathRatio']
@@ -200,6 +206,7 @@ def getUserStatsDict(steamID):
     
     return d
 
+# Gets the users three lowest stats with respect to their favorite player's
 def getThreeLowestStats(userDict, hltvDict):
 
     # So the steam API is old and they have made almost no updates since it
@@ -234,6 +241,7 @@ def getThreeLowestStats(userDict, hltvDict):
     
     return lowest1, lowest2, lowest3
 
+# gets the first item in the steam workshop from a given workshop page link
 def getFirstWorkshopItemLink(workshopLink):
     workshopRequest = requests.get(workshopLink).text
     # loop until we get to the first item:
@@ -245,6 +253,7 @@ def getFirstWorkshopItemLink(workshopLink):
             link = lines[i + 1][j0: j0 + j1]
             return link
 
+# gets the first youtube video link and thumbnail from a given youtube search link
 def getFirstYoutubeThumbnailAndLink(link):
     youtubeRequest = requests.get(link).text.splitlines()
     for i in range(len(youtubeRequest)):
@@ -265,6 +274,8 @@ def getFirstYoutubeThumbnailAndLink(link):
 # main profile page, for comparing user stats with their favorite pro's stats
 # since Flask uses Jinja, variables can be passed into the html
 # AS LONG AS THEY'RE DEFINED AS LOCALS
+# so basically there are a lot of variables that may seem to be random
+# but are used in the html file
 @app.route('/profile/<steamID>', methods=["GET", "POST"])
 def profile(steamID):
     try:
@@ -290,6 +301,7 @@ def profile(steamID):
 
     if(request.method == "POST"):
         try:
+            # checks if the button was pressed, if it wasn't then it'll crash
             button = request.form["searchName"]
             setFavoritePlayer(button, steamID)
             # update list
@@ -307,6 +319,7 @@ def profile(steamID):
             lowest1, lowest2, lowest3 = getThreeLowestStats(userStatsDict, userHLTVStats)
 
         except:
+            # checks if we searched for a player, if we didn't it would crash
             try:
                 searchResults = hltvScript.getPlayerStatsFromWord(request.form["search"])
                 if(searchResults == None):
@@ -318,10 +331,15 @@ def profile(steamID):
                     searchWinPercent, searchLastMatchKillDeathRatio, \
                         searchFavoriteMapWinPercent = \
                             getHLTVLocals(searchResults, userFavoriteMap)
-                
+            # if we didn't search or submit anything, then just load the page
             except:
                 return render_template("profile.html", **locals())
     return render_template("profile.html",  **locals())
+
+# the following pages are mini pages that list out recommendations for
+# how a player can improve on a given stat.
+# they combine hand-picked suggested materials but also pulls from
+# what maps/videos are currently popular on the steam workshop and on youtube
 
 @app.route('/K/D Ratio/<steamID>')
 def kdRatioPage(steamID):
