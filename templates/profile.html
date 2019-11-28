@@ -1,10 +1,35 @@
 <!DOCTYPE html>
 <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
 
+        function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+            ['Year', 'Sales', 'Expenses'],
+            ['2004',  1000,      400],
+            ['2005',  1170,      460],
+            ['2006',  660,       1120],
+            ['2007',  1030,      540]
+        ]);
+
+        // change curveType to 'function' to set it to be curvy
+        var options = {
+            title: 'Company Performance',
+            curveType: 'none',
+            legend: { position: 'bottom' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('line_chart'));
+
+        chart.draw(data, options);
+        }
+    </script>
 </head>
 <body>
     <h2>{{accountName}}</h2>
-    <img alt="Profile pic" src={{accountProfilePicture}} width=64 height=64></img>
+    <img alt="Profile pic" src={{accountProfilePicture}} width=64 height=64>
     <h2>Your Stats:</h2>
     {% if userTeam %}
         <p>K/D Ratio:
@@ -72,6 +97,9 @@
         <p>{{userFavoriteMap}} Win Rate: {{favoriteFavoriteMapWinPercent}} %</p>
     {% endif %}
     <br>
+
+    <div id="line_chart" style="width: 900px; height: 500px"></div>
+
     <p>Search for another player below!</p>
     <form method="POST">
         <input name="search">
