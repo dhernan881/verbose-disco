@@ -135,7 +135,7 @@ def getUserInfo(steamID):
     accountProfilePicture = playerInfo['response']['players'][0]['avatarmedium']
     return accountName, accountProfilePicture
 
-# get's the user's profile from csv [steamID, [favoritePlayer]]
+# get's the user's profile from csv [steamID, [favoritePlayer], [previous matches stats]]
 def getUserProfile(steamID):
     userProfile = None
     with open("userData.csv") as csvfile:
@@ -196,7 +196,7 @@ def setFavoritePlayer(player, steamID):
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
 
-# pass in stats dict
+# updates the user's previous match stats
 def updateStats(steamID, stats):
     userProfile = getUserProfile(steamID)
     # get stats list, then append new stats to it
@@ -218,6 +218,7 @@ def updateStats(steamID, stats):
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
 
+# builds the stats for formatting for Google Charts Script
 def buildGraphStats(stats):
     graphStats = [['Game', 'K/D Ratio', 'Average Damage/Round']]
     kdrGraphStats = [['Game', 'K/D Ratio']]
