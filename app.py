@@ -84,6 +84,28 @@ def getSteamUserStats(steamID):
     # overall win rate (how to close out more rounds? idk),
     # last map k/d (compare to pro last match, teach warmup)
 
+# get's the user's last match KDR and ADR exclusively; used for progression
+def getLastMatchKDRAndADR(steamID):
+    steamLink = 'https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?appid=730&key='
+    steamLink += steamAPIKey
+    steamLink += "&steamid="
+    steamLink += str(steamID)
+
+    userSteamStats = requests.get(steamLink).json()
+    lastMatchStats = dict()
+    for elem in userSteamStats['playerstats']['stats']:
+        if(elem['name'] == 'last_match_rounds'): lastMatchRounds = elem['value']
+        elif(elem['name'] == 'last_match_damage'): lastMatchDamage = elem['value']
+        elif(elem['name'] == 'last_match_kills'): lastMatchKills = elem['value']
+        elif(elem['name'] == 'last_match_deaths'): lastMatchDeaths = elem['value']
+
+    lastMatchStats['lastMatchADR'] = lastMatchDamage / lastMatchRounds
+    lastMatchStats['lastMatchADR'] = round(lastMatchStats['lastMatchADR'], 2)
+    lastMatchStats['lastMatchKDR'] = lastMatchKills / lastMatchDeaths
+    lastMatchStats['lastMatchKDR'] = round(lastMatchStats['lastMatchKDR'], 2)
+
+    return lastMatchStats
+
 # get's the user's "favorite" map (i.e. one with the most rounds played)
 # and their winrate on that map
 # unfortunately the map is de_dust2 for pretty much everyone cuz it's so popular
@@ -124,10 +146,10 @@ def getUserProfile(steamID):
                 userProfile = row
     if userProfile == None:
         with open("userData.csv", "a+") as csvfile:
-            csvfile.write(f"{steamID},[]\n")
+            csvfile.write(f"{steamID},[],[]\n")
         with open("userData.csv") as csvfile:
             profileReader = csv.reader(csvfile, delimiter=',')
-            userProfile = [f'{steamID}','[]']
+            userProfile = [f'{steamID}','[]','[]']
         
     return userProfile
 
@@ -154,10 +176,14 @@ def getUserLocals(steamID):
 def getUserTeam(L):
     return ast.literal_eval(L[1])
 
+# same as above but this is for the stats dict
+def getLastMatchDictFromProfile(L):
+    return ast.literal_eval(L[2])
+
 # sets the user's favoritePlayer in the csv
 def setFavoritePlayer(player, steamID):
     userProfile = getUserProfile(steamID)
-    newRow = [steamID, [player]]
+    newRow = [steamID, [player], getLastMatchDictFromProfile(userProfile)]
 
     with open("userData.csv", "r") as readFile:
         profileReader = csv.reader(readFile)
@@ -167,6 +193,28 @@ def setFavoritePlayer(player, steamID):
                 rowIndex = i
         lines[rowIndex] = newRow
     
+    with open("userData.csv", "w") as writeFile:
+        profileWriter = csv.writer(writeFile)
+        profileWriter.writerows(lines)
+
+# pass in stats dict
+def updateStats(steamID, stats):
+    userProfile = getUserProfile(steamID)
+    # get stats list, then append new stats to it
+    oldStats = getLastMatchDictFromProfile(userProfile)
+    if(len(oldStats) == 0 or oldStats[-1] != stats): # short circuit big brain
+        oldStats.append(stats)
+        # newStats = oldStats + [stats]
+    newRow = [steamID, getUserTeam(userProfile), oldStats]
+
+    with open("userData.csv", "r") as readFile:
+        profileReader = csv.reader(readFile)
+        lines = list(profileReader)
+        for i in range(len(lines)):
+            if(steamID in lines[i]):
+                rowIndex = i
+        lines[rowIndex] = newRow
+        
     with open("userData.csv", "w") as writeFile:
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
@@ -278,6 +326,8 @@ def getFirstYoutubeThumbnailAndLink(link):
 # but are used in the html file
 @app.route('/profile/<steamID>', methods=["GET", "POST"])
 def profile(steamID):
+    # if this try doesn't work (more specifically, the first lines),
+    # return to the login page because their account is set to private somewhere
     try:
         accountName, accountProfilePicture = getUserInfo(steamID)
         userProfile = getUserProfile(steamID)
@@ -287,7 +337,12 @@ def profile(steamID):
                 getUserLocals(steamID)
     except:
         return redirect(url_for('loginError'))
+
+    newestMatchStats = getLastMatchKDRAndADR(steamID)
+    updateStats(steamID, newestMatchStats)
     
+    # checks if we need to compare stats to a pro player
+    # if the length of the list is 0, then they haven't set a player yet
     if(len(getUserTeam(userProfile)) > 0):
         userTeam = getUserTeam(userProfile)[0]
         userHLTVStats = hltvScript.getPlayerStatsFromWord(userTeam)
