@@ -99,8 +99,7 @@ def getLastMatchKDRAndADR(steamID):
         elif(elem['name'] == 'last_match_kills'): lastMatchKills = elem['value']
         elif(elem['name'] == 'last_match_deaths'): lastMatchDeaths = elem['value']
 
-    lastMatchStats['lastMatchADR'] = lastMatchDamage / lastMatchRounds
-    lastMatchStats['lastMatchADR'] = round(lastMatchStats['lastMatchADR'], 2)
+    lastMatchStats['lastMatchADR'] = lastMatchDamage // lastMatchRounds
     lastMatchStats['lastMatchKDR'] = lastMatchKills / lastMatchDeaths
     lastMatchStats['lastMatchKDR'] = round(lastMatchStats['lastMatchKDR'], 2)
 
@@ -201,11 +200,11 @@ def setFavoritePlayer(player, steamID):
 def updateStats(steamID, stats):
     userProfile = getUserProfile(steamID)
     # get stats list, then append new stats to it
-    oldStats = getLastMatchDictFromProfile(userProfile)
-    if(len(oldStats) == 0 or oldStats[-1] != stats): # short circuit big brain
-        oldStats.append(stats)
+    matchStats = getLastMatchDictFromProfile(userProfile)
+    if(len(matchStats) == 0 or matchStats[-1] != stats): # short circuit big brain
+        matchStats.append(stats)
         # newStats = oldStats + [stats]
-    newRow = [steamID, getUserTeam(userProfile), oldStats]
+    newRow = [steamID, getUserTeam(userProfile), matchStats]
 
     with open("userData.csv", "r") as readFile:
         profileReader = csv.reader(readFile)
@@ -218,6 +217,18 @@ def updateStats(steamID, stats):
     with open("userData.csv", "w") as writeFile:
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
+
+def buildGraphStats(stats):
+    graphStats = [['Game', 'K/D Ratio', 'Average Damage/Round']]
+    kdrGraphStats = [['Game', 'K/D Ratio']]
+    adrGraphStats = [['Game', 'Average Damage/Round']]
+    for i in range(len(stats)):
+        gameNumber = i + 1
+        gameKDR = stats[i]['lastMatchKDR']
+        gameADR = stats[i]['lastMatchADR']
+        kdrGraphStats.append([gameNumber, gameKDR])
+        adrGraphStats.append([gameNumber, gameADR])
+    return kdrGraphStats,adrGraphStats
 
 # needed for jinja
 # returns a tuple of variables so I can define them in web functions
@@ -340,6 +351,12 @@ def profile(steamID):
 
     newestMatchStats = getLastMatchKDRAndADR(steamID)
     updateStats(steamID, newestMatchStats)
+    
+    # have to update userProfile because updateStats destructively modifies
+    # the list of match stats
+    userProfile = getUserProfile(steamID)
+    kdrGraphStats,adrGraphStats = \
+        buildGraphStats(getLastMatchDictFromProfile(userProfile))
     
     # checks if we need to compare stats to a pro player
     # if the length of the list is 0, then they haven't set a player yet
