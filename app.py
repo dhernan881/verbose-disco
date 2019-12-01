@@ -196,6 +196,20 @@ def setFavoritePlayer(player, steamID):
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
 
+# removes the row containing the given steamID from userData.csv
+def removeAccountFromCSV(steamID):
+    with open("userData.csv", "r") as readFile:
+        profileReader = csv.reader(readFile)
+        lines = list(profileReader)
+        for i in range(len(lines)):
+            if(steamID in lines[i]):
+                rowIndex = i
+        lines.pop(rowIndex)
+
+    with open("userData.csv", "w") as writeFile:
+        profileWriter = csv.writer(writeFile)
+        profileWriter.writerows(lines)
+
 # updates the user's previous match stats
 def updateStats(steamID, stats):
     userProfile = getUserProfile(steamID)
@@ -218,7 +232,8 @@ def updateStats(steamID, stats):
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
 
-# builds the stats for formatting for Google Charts Script
+# builds the stats for formatting for Google Charts javascript script
+# google charts from https://bit.ly/37LLkwJ
 def buildGraphStats(stats):
     graphStats = [['Game', 'K/D Ratio', 'Average Damage/Round']]
     kdrGraphStats = [['Game', 'K/D Ratio']]
@@ -502,6 +517,12 @@ def overpassPage(steamID):
 @app.route('/recommendations/<steamID>')
 def recommendations(steamID):
     return render_template("recommendations.html", **locals())
+
+# deletes account and returns to the login page
+@app.route('/deleteAccount/<steamID>')
+def deleteAccount(steamID):
+    removeAccountFromCSV(steamID)
+    return redirect(url_for('index'))
 
 if __name__ == "__main__":
 	app.run(port="5000")

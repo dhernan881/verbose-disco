@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <head>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css" integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
         google.charts.load('current', {'packages':['corechart']});
@@ -44,98 +45,138 @@
     </script>
 </head>
 <body>
+    <div class="pure-menu pure-menu-horizontal" style="background:maroon">
+        <a href="/profile/{{steamID}}" class="pure-menu-heading pure-menu-link" style="background:maroon; color:lightgray">Profile</a>
+        <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/recommendations/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">All Recommendations</a></li>
+            <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+                <a href="#" id="menuLink1" class="pure-menu-link" style="background:maroon; color:lightgray">Maps</a>
+                <ul class="pure-menu-children">
+                    <li class="pure-menu-item"><a href="/de_cache Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Cache</a></li>
+                    <li class="pure-menu-item"><a href="/de_cbble Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Cobblestone</a></li>
+                    <li class="pure-menu-item"><a href="/de_dust2 Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Dust 2</a></li>
+                    <li class="pure-menu-item"><a href="/de_inferno Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Inferno</a></li>
+                    <li class="pure-menu-item"><a href="/de_mirage Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Mirage</a></li>
+                    <li class="pure-menu-item"><a href="/de_nuke Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Nuke</a></li>
+                    <li class="pure-menu-item"><a href="/de_overpass Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Overpass</a></li>
+                    <li class="pure-menu-item"><a href="/de_train Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Train</a></li>
+                    <li class="pure-menu-item"><a href="/de_vertigo Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Inferno</a></li>
+                </ul>
+            </li>
+            <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+                <a href="#" id="menuLink2" class="pure-menu-link" style="background:maroon; color:lightgray">Other Tips</a>
+                <ul class="pure-menu-children">
+                    <li class="pure-menu-item"><a href="/K/D Ratio/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">K/D Ratio</a></li>
+                    <li class="pure-menu-item"><a href="/Headshot %/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Headshot %</a></li>
+                    <li class="pure-menu-item"><a href="/Overall Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Overall Win Rate</a></li>
+                    <li class="pure-menu-item"><a href="/Last Match K/D Ratio/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Last Match K/D Ratio</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
     <h2>{{accountName}}</h2>
     <img alt="Profile pic" src={{accountProfilePicture}} width=64 height=64>
-    <h2>Your Stats:</h2>
-    {% if userTeam %}
-        <p>K/D Ratio:
-            {% if userKillDeath / favoriteKillDeath < 0.75 %}
-                <span style="color:red">{{userKillDeath}}</span>
-            {% elif userKillDeath / favoriteKillDeath > 1.25 %}
-                <span style="color:green">{{userKillDeath}}</span>
+    <div class="pure-g">
+        <div class="pure-u-1-3">
+            <h2>Your Stats:</h2>
+            {% if userTeam %}
+                <p>K/D Ratio:
+                    {% if userKillDeath / favoriteKillDeath < 0.75 %}
+                        <span style="color:red">{{userKillDeath}}</span>
+                    {% elif userKillDeath / favoriteKillDeath > 1.25 %}
+                        <span style="color:green">{{userKillDeath}}</span>
+                    {% else %}
+                        <span>{{userKillDeath}}</span>
+                    {% endif %}
+                </p>
+                <p>Headshot Percent:
+                    {% if userHeadshotPercent / favoriteHeadshotPercent < 0.75 %}
+                        <span style="color:red">{{userHeadshotPercent}} %</span>
+                    {% elif userHeadshotPercent / favoriteHeadshotPercent > 1.25 %}
+                        <span style="color:green">{{userHeadshotPercent}} %</span>
+                    {% else %}
+                        <span>{{userHeadshotPercent}} %</span>
+                    {% endif %}
+                </p>
+                <p>Overall Win Rate:
+                    {% if userOverallWinPercent / favoriteWinPercent < 0.75 %}
+                        <span style="color:red">{{userOverallWinPercent}} %</span>
+                    {% elif userOverallWinPercent / favoriteWinPercent > 1.25 %}
+                        <span style="color:green">{{userOverallWinPercent}} %</span>
+                    {% else %}
+                        <span>{{userOverallWinPercent}} %</span>
+                    {% endif %}
+                </p>
+                <p>Last Match K/D Ratio:
+                    {% if userLastMatchKillDeath / favoriteLastMatchKillDeath < 0.75 %}
+                        <span style="color:red">{{userLastMatchKillDeath}}</span>
+                    {% elif userLastMatchKillDeath / favoriteLastMatchKillDeath > 1.25 %}
+                        <span style="color:green">{{userLastMatchKillDeath}}</span>
+                    {% else %}
+                        <span>{{userLastMatchKillDeath}}</span>
+                    {% endif %}
+                </p>
+                <p>Favorite Map: {{userFavoriteMap}}</p>
+                <p>Favorite Map Win Rate:
+                    {% if userFavoriteMapWinRate / favoriteFavoriteMapWinPercent < 0.75 %}
+                        <span style="color:red">{{userLastMatchKillDeath}} %</span>
+                    {% elif userFavoriteMapWinRate / favoriteFavoriteMapWinPercent > 1.25 %}
+                        <span style="color:green">{{userLastMatchKillDeath}} %</span>
+                    {% else %}
+                        <span>{{userFavoriteMapWinRate}} %</span>
+                    {% endif %}
+                </p>
             {% else %}
-                <span>{{userKillDeath}}</span>
+                <p>K/D Ratio: {{userKillDeath}}</p>
+                <p>Headshot Percent: {{userHeadshotPercent}} %</p>
+                <p>Overall Win Rate: {{userOverallWinPercent}} %</p>
+                <p>Last Match K/D Ratio: {{userLastMatchKillDeath}}</p>
+                <p>Favorite Map: {{userFavoriteMap}}</p>
+                <p>Favorite Map Win Rate: {{userFavoriteMapWinRate}} %</p>
             {% endif %}
-        </p>
-        <p>Headshot Percent:
-            {% if userHeadshotPercent / favoriteHeadshotPercent < 0.75 %}
-                <span style="color:red">{{userHeadshotPercent}} %</span>
-            {% elif userHeadshotPercent / favoriteHeadshotPercent > 1.25 %}
-                <span style="color:green">{{userHeadshotPercent}} %</span>
-            {% else %}
-                <span>{{userHeadshotPercent}} %</span>
+        </div>
+        <div class="pure-u-1-3">
+            <h2>Your Favorite Player:</h2>
+            <p>{{userTeam}}</p>
+            {% if userTeam %}
+                <h3>{{userTeam}}'s Stats:</h3>
+                <p>K/D Ratio: {{favoriteKillDeath}}</p>
+                <p>Headshot Percent: {{favoriteHeadshotPercent}} %</p>
+                <p>Overall Win Rate: {{favoriteWinPercent}} %</p>
+                <p>Last Match K/D Ratio: {{favoriteLastMatchKillDeath}}</p>
+                <p>{{userFavoriteMap}} Win Rate: {{favoriteFavoriteMapWinPercent}} %</p>
             {% endif %}
-        </p>
-        <p>Overall Win Rate:
-            {% if userOverallWinPercent / favoriteWinPercent < 0.75 %}
-                <span style="color:red">{{userOverallWinPercent}} %</span>
-            {% elif userOverallWinPercent / favoriteWinPercent > 1.25 %}
-                <span style="color:green">{{userOverallWinPercent}} %</span>
-            {% else %}
-                <span>{{userOverallWinPercent}} %</span>
+        </div>
+        <div class="pure-u-1-3">
+            <p>Search for another player below!</p>
+            <form class="pure-form" method="POST">
+                <input name="search" placeholder="e.g. pashabiceps">
+            </form>
+            {% if searchName %}
+                <h3>{{searchName}}'s Stats:</h3>
+                <p>K/D Ratio: {{searchKillDeathRatio}}</p>
+                <p>Headshot Percent: {{searchHeadshotPercent}} %</p>
+                <p>Overall Win Percent: {{searchWinPercent}} %</p>
+                <p>Last Match K/D Ratio: {{searchLastMatchKillDeathRatio}}</p>
+                <p>{{userFavoriteMap}} Win Rate: {{searchFavoriteMapWinPercent}} %</p>
+                <form method="POST">
+                    <input type="hidden" name="searchName" id="searchName" value={{searchName}}>
+                    <input type="submit" value="Set as favorite player?">
+                </form>
+            {% elif searchResults %}
+                <p>{{searchResults}}</p>
             {% endif %}
-        </p>
-        <p>Last Match K/D Ratio:
-            {% if userLastMatchKillDeath / favoriteLastMatchKillDeath < 0.75 %}
-                <span style="color:red">{{userLastMatchKillDeath}}</span>
-            {% elif userLastMatchKillDeath / favoriteLastMatchKillDeath > 1.25 %}
-                <span style="color:green">{{userLastMatchKillDeath}}</span>
-            {% else %}
-                <span>{{userLastMatchKillDeath}}</span>
-            {% endif %}
-        </p>
-        <p>Favorite Map: {{userFavoriteMap}}</p>
-        <p>Favorite Map Win Rate:
-            {% if userFavoriteMapWinRate / favoriteFavoriteMapWinPercent < 0.75 %}
-                <span style="color:red">{{userLastMatchKillDeath}} %</span>
-            {% elif userFavoriteMapWinRate / favoriteFavoriteMapWinPercent > 1.25 %}
-                <span style="color:green">{{userLastMatchKillDeath}} %</span>
-            {% else %}
-                <span>{{userFavoriteMapWinRate}} %</span>
-            {% endif %}
-        </p>
-    {% else %}
-        <p>K/D Ratio: {{userKillDeath}}</p>
-        <p>Headshot Percent: {{userHeadshotPercent}} %</p>
-        <p>Overall Win Rate: {{userOverallWinPercent}} %</p>
-        <p>Last Match K/D Ratio: {{userLastMatchKillDeath}}</p>
-        <p>Favorite Map: {{userFavoriteMap}}</p>
-        <p>Favorite Map Win Rate: {{userFavoriteMapWinRate}} %</p>
-    {% endif %}
-    <h2>Your Favorite Player:</h2>
-    <p>{{userTeam}}</p>
-    {% if userTeam %}
-        <h3>{{userTeam}}'s Stats:</h3>
-        <p>K/D Ratio: {{favoriteKillDeath}}</p>
-        <p>Headshot Percent: {{favoriteHeadshotPercent}} %</p>
-        <p>Overall Win Rate: {{favoriteWinPercent}} %</p>
-        <p>Last Match K/D Ratio: {{favoriteLastMatchKillDeath}}</p>
-        <p>{{userFavoriteMap}} Win Rate: {{favoriteFavoriteMapWinPercent}} %</p>
-    {% endif %}
+        </div>
+    </div>
     <br>
     
+    <div class="pure-g">
+        <div class="pure-u-1-2"><div id="kdrChart" style="width: 450px; height: 250px"></div></div>
+        <div class="pure-u-1-2"><div id="adrChart" style="width: 450px; height: 250px"></div></div>
+    </div>
     
-    <span><div id="kdrChart" style="width: 900px; height: 500px"></div></span>
-    <span><div id="adrChart" style="width: 900px; height: 500px"></div></span>
 
-    <p>Search for another player below!</p>
-    <form method="POST">
-        <input name="search">
-    </form>
-    {% if searchName %}
-        <h3>{{searchName}}'s Stats:</h3>
-        <p>K/D Ratio: {{searchKillDeathRatio}}</p>
-        <p>Headshot Percent: {{searchHeadshotPercent}} %</p>
-        <p>Overall Win Percent: {{searchWinPercent}} %</p>
-        <p>Last Match K/D Ratio: {{searchLastMatchKillDeathRatio}}</p>
-        <p>{{userFavoriteMap}} Win Rate: {{searchFavoriteMapWinPercent}} %</p>
-        <form method="POST">
-            <input type="hidden" name="searchName" id="searchName" value={{searchName}}>
-            <input type="submit" value="Set as favorite player?">
-        </form>
-    {% elif searchResults %}
-        <p>{{searchResults}}</p>
-    {% endif %}
+    
 
 {% if lowest1 %}
     <h2>Want to be as good as {{userTeam}}? We've identified these three areas for your improvement:</h2>
@@ -147,4 +188,6 @@
 {% endif %}
 <br>
 <h3><a href="/recommendations/{{steamID}}">View our full list of recommendations here!</a></h3>
+
+<h2>Click <a href="/deleteAccount/{{steamID}}">here</a> to delete your account and all stored match data.</h2>
 </body>
