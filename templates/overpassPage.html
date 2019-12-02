@@ -1,8 +1,41 @@
 <!DOCTYPE html>
 <head>
-
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css" integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
 </head>
 <body>
+    <div class="pure-menu pure-menu-horizontal" style="background:maroon">
+        {% if steamID != "nologin" %}
+            <a href="/profile/{{steamID}}" class="pure-menu-heading pure-menu-link" style="background:maroon; color:lightgray">Profile</a>
+        {% else %}
+            <a href="/" class="pure-menu-heading pure-menu-link" style="background:maroon; color:lightgray">Login</a>
+        {% endif %}
+        <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/recommendations/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">All Recommendations</a></li>
+            <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+                <a href="#" id="menuLink1" class="pure-menu-link" style="background:maroon; color:lightgray">Maps</a>
+                <ul class="pure-menu-children">
+                    <li class="pure-menu-item"><a href="/de_cache Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Cache</a></li>
+                    <li class="pure-menu-item"><a href="/de_cbble Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Cobblestone</a></li>
+                    <li class="pure-menu-item"><a href="/de_dust2 Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Dust 2</a></li>
+                    <li class="pure-menu-item"><a href="/de_inferno Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Inferno</a></li>
+                    <li class="pure-menu-item"><a href="/de_mirage Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Mirage</a></li>
+                    <li class="pure-menu-item"><a href="/de_nuke Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Nuke</a></li>
+                    <li class="pure-menu-item"><a href="/de_overpass Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Overpass</a></li>
+                    <li class="pure-menu-item"><a href="/de_train Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Train</a></li>
+                    <li class="pure-menu-item"><a href="/de_vertigo Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Inferno</a></li>
+                </ul>
+            </li>
+            <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+                <a href="#" id="menuLink2" class="pure-menu-link" style="background:maroon; color:lightgray">Other Tips</a>
+                <ul class="pure-menu-children">
+                    <li class="pure-menu-item"><a href="/K/D Ratio/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">K/D Ratio</a></li>
+                    <li class="pure-menu-item"><a href="/Headshot %/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Headshot %</a></li>
+                    <li class="pure-menu-item"><a href="/Overall Win Rate/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Overall Win Rate</a></li>
+                    <li class="pure-menu-item"><a href="/Last Match K/D Ratio/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Last Match K/D Ratio</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
     <h1>de_overpass Win Rate</h1>
     <h2>Struggling to win rounds on de_overpass? Here are our best resources!</h2>
     <br>
@@ -18,8 +51,4 @@
         <span><a href="https://youtu.be/Z-OryvhbFZo" target="_blank"><img height="138" width="246" src="https://bit.ly/37C6D3E"></a></span>
         <span>First result on YouTube search: <a href="{{youtubeLink}}" target="_blank"><img height="138" width="246" src="{{thumbnail}}"></a></span>
     </p>
-    <br>
-    <h3><a href="/recommendations/{{steamID}}">View our full list of recommendations here!</a></h3>
-    <br>
-    <h3><a href="/profile/{{steamID}}">Return to profile page</a></h3>
 </body>
