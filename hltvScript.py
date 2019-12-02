@@ -1,7 +1,8 @@
 import requests
 
+# this file is used for getting data from hltv.org
+
 def getProfileLinkSuffixes():
-    # is this too big???
     # makes an hltv request to the player stats page
     # changed minimum maps required from 0 to 100 to speed things up quite a bit
     request = requests.get('https://www.hltv.org/stats/players?minMapCount=100')

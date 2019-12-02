@@ -7,6 +7,7 @@ from urllib.parse import urlencode, quote
 import csv
 import ast
 
+# css for the html pages is from https://purecss.io/
 
 app = Flask(__name__)
 steamAPIKey = "99265BB0548A6F48052B8784D88B8A44"
