@@ -1,5 +1,5 @@
-import hltvScript
-# reminder it only searches for players who have at least 100 recorded matches
+import hltvScript # reminder it only searches for players who have >= 100 recorded matches
+import steamScript # for steam functions
 import requests
 from flask import Flask, render_template, redirect, request, url_for, g, session
 from flask_openid import OpenID
@@ -7,7 +7,12 @@ from urllib.parse import urlencode, quote
 import csv
 import ast
 
-# css for the html pages is from https://purecss.io/
+# compare with other people
+# store sites already seen
+# threading
+# aesthetic
+
+# NOTE that css for the html pages is from https://purecss.io/
 
 app = Flask(__name__)
 steamAPIKey = "99265BB0548A6F48052B8784D88B8A44"
@@ -24,12 +29,11 @@ def loginError():
     Go to your profile -> Edit Profile -> My Profile (set to Public) -> Game Details (set to Public)'''
     return render_template('index.html', **locals())
 
-steamURL = 'https://steamcommunity.com/openid/login'
-
 # BEGIN NOT MINE
 # from https://github.com/fourcube/minimal-steam-openid
 @app.route('/signin')
 def signIn():
+    steamURL = 'https://steamcommunity.com/openid/login'
     params = {
     'openid.ns': "http://specs.openid.net/auth/2.0",
     'openid.identity': "http://specs.openid.net/auth/2.0/identifier_select",
@@ -48,93 +52,6 @@ def authorize():
     steamID = steamID[steamID.index("/id/") + 4:]
     return redirect(url_for('profile', steamID=steamID))
 # END NOT MINE
-
-# gets the user's in-game CS:GO stats; will probably be migrated into 
-# another script just for clarity/less clutter
-def getSteamUserStats(steamID):
-    steamAPILink = 'https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?appid=730&key='
-    steamAPILink += steamAPIKey
-    steamAPILink += "&steamid="
-    steamAPILink += steamID
-    userSteamStats = requests.get(steamAPILink).json()
-
-    userStats = dict()
-    mapsDict = dict()
-    winsDict = dict()
-    # just for now, only take K/D
-    for elem in userSteamStats['playerstats']['stats']:
-        if (elem['name'] == 'total_kills'): userStats['totalKills'] = elem['value']
-        elif(elem['name'] == 'total_deaths'): userStats['totalDeaths'] = elem['value']
-        elif(elem['name'] == 'total_kills_headshot'): headshotKills = elem['value']
-        elif(elem['name'] == 'total_rounds_played'): roundsPlayed = elem['value']
-        elif(elem['name'] == 'total_wins'): roundsWon = elem['value']
-        elif(elem['name'] == 'last_match_kills'): lastKills = elem['value']
-        elif(elem['name'] == 'last_match_deaths'): lastDeaths = elem['value']
-        elif('total_rounds_map_de' in elem['name']): mapsDict[elem['name']] = elem['value']
-        elif('total_wins_map_de' in elem['name']): winsDict[elem['name']] = elem['value']
-
-    userStats['overallWinRate'] = roundsWon / roundsPlayed
-    userStats['headshotRatio'] = headshotKills / userStats['totalKills']
-    userStats['killDeathRatio'] = userStats['totalKills'] / userStats['totalDeaths']
-    userStats['lastKillDeathRatio'] = lastKills / lastDeaths
-    userStats['favoriteMap'],userStats['favoriteMapWinRate'] = \
-        getFavoriteMapAndWinRate(mapsDict, winsDict)
-    return userStats
-    # want kdr (compare to pro overall k/d), headshot %,
-    # favorite map, favorite map win %, 
-    # overall win rate (how to close out more rounds? idk),
-    # last map k/d (compare to pro last match, teach warmup)
-
-# get's the user's last match KDR and ADR exclusively; used for progression
-def getLastMatchKDRAndADR(steamID):
-    steamLink = 'https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?appid=730&key='
-    steamLink += steamAPIKey
-    steamLink += "&steamid="
-    steamLink += str(steamID)
-
-    userSteamStats = requests.get(steamLink).json()
-    lastMatchStats = dict()
-    for elem in userSteamStats['playerstats']['stats']:
-        if(elem['name'] == 'last_match_rounds'): lastMatchRounds = elem['value']
-        elif(elem['name'] == 'last_match_damage'): lastMatchDamage = elem['value']
-        elif(elem['name'] == 'last_match_kills'): lastMatchKills = elem['value']
-        elif(elem['name'] == 'last_match_deaths'): lastMatchDeaths = elem['value']
-
-    lastMatchStats['lastMatchADR'] = lastMatchDamage // lastMatchRounds
-    lastMatchStats['lastMatchKDR'] = lastMatchKills / lastMatchDeaths
-    lastMatchStats['lastMatchKDR'] = round(lastMatchStats['lastMatchKDR'], 2)
-
-    return lastMatchStats
-
-# get's the user's "favorite" map (i.e. one with the most rounds played)
-# and their winrate on that map
-# unfortunately the map is de_dust2 for pretty much everyone cuz it's so popular
-def getFavoriteMapAndWinRate(mapsDict, winsDict):
-    favoriteMap = ''
-    favoriteMapRounds = 0
-    favoriteMapRoundWins = 0
-    for map in mapsDict:
-        if mapsDict[map] > favoriteMapRounds:
-            favoriteMap = map[map.find("de_"):]
-            favoriteMapRounds = mapsDict[map]
-
-    # is there a better way to loop through this?
-    for map in winsDict:
-        if favoriteMap in map:
-            favoriteMapRoundWins = winsDict[map]
-    
-    return favoriteMap, favoriteMapRoundWins / favoriteMapRounds
-
-# gets the user's steam info (name and profile picture)
-def getUserInfo(steamID):
-    requestURL = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key='
-    requestURL += steamAPIKey
-    requestURL += '&steamids='
-    requestURL += str(steamID)
-    playerInfo = requests.get(requestURL).json()
-    accountName = playerInfo['response']['players'][0]['personaname']
-    accountProfilePicture = playerInfo['response']['players'][0]['avatarmedium']
-    return accountName, accountProfilePicture
 
 # get's the user's profile from csv [steamID, [favoritePlayer], [previous matches stats]]
 def getUserProfile(steamID):
@@ -156,7 +73,7 @@ def getUserProfile(steamID):
 # needed for jinja
 # returns a tuple of variables so I can define them in web functions
 def getUserLocals(steamID):
-    userStats = getSteamUserStats(steamID)
+    userStats = steamScript.getSteamUserStats(steamID)
     userKillDeath = userStats['killDeathRatio']
     userKillDeath = round(userKillDeath, 2)
     userHeadshotPercent = userStats['headshotRatio'] * 100
@@ -168,7 +85,7 @@ def getUserLocals(steamID):
     userFavoriteMap = userStats['favoriteMap']
     userFavoriteMapWinRate = userStats['favoriteMapWinRate'] * 100
     userFavoriteMapWinRate = round(userFavoriteMapWinRate, 2)
-
+    
     return userKillDeath, userHeadshotPercent, userOverallWinPercent, \
         userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate
 
@@ -357,16 +274,16 @@ def profile(steamID):
     # if this try doesn't work (more specifically, the first lines),
     # return to the login page because their account is set to private somewhere
     try:
-        accountName, accountProfilePicture = getUserInfo(steamID)
+        accountName, accountProfilePicture = steamScript.getUserInfo(steamID)
         userProfile = getUserProfile(steamID)
-
+        
         userKillDeath, userHeadshotPercent, userOverallWinPercent, \
             userLastMatchKillDeath, userFavoriteMap, userFavoriteMapWinRate = \
                 getUserLocals(steamID)
     except:
         return redirect(url_for('loginError'))
 
-    newestMatchStats = getLastMatchKDRAndADR(steamID)
+    newestMatchStats = steamScript.getLastMatchKDRAndADR(steamID)
     updateStats(steamID, newestMatchStats)
     
     # have to update userProfile because updateStats destructively modifies
