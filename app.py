@@ -342,6 +342,45 @@ def profile(steamID):
                 return render_template("profile.html", **locals())
     return render_template("profile.html",  **locals())
 
+@app.route('/friendSearch/<steamID>', methods=['GET', 'POST'])
+def friendSearch(steamID):
+    if(steamID == 'nologin'):
+        return redirect(url_for('index'))
+    if(request.method == 'POST'):
+        search = request.form["search"]
+        friendResult = steamScript.getFriendSteamIDFromWord(steamID, search)
+        if(isinstance(friendResult,list)):
+            msg = 'Did you mean: '
+            for name in friendResult:
+                msg += name
+                msg += ', '
+            msg = msg[:-2] + '?' # chop off last comma
+            return render_template('friendSearch.html', **locals())
+        else:
+            return redirect(url_for('compareFriends', yourSteamID=steamID, friendSteamID=friendResult))
+    else:
+        return render_template('friendSearch.html')
+
+@app.route('/compareFriends/<yourSteamID>/<friendSteamID>')
+def compareFriends(yourSteamID,friendSteamID):
+    if(yourSteamID == 'nologin'):
+        return redirect(url_for('index'))
+    yourName, yourProfilePicture = steamScript.getUserInfo(yourSteamID)
+    yourKillDeath, yourHeadshotPercent, yourOverallWinPercent, \
+        yourLastMatchKillDeath, yourFavoriteMap, yourFavoriteMapWinRate = \
+            getUserLocals(yourSteamID)
+
+    try:
+        friendName, friendProfilePicture = steamScript.getUserInfo(friendSteamID)
+        friendKillDeath, friendHeadshotPercent, friendOverallWinPercent, \
+            friendLastMatchKillDeath, friendFavoriteMap, friendFavoriteMapWinRate = \
+                getUserLocals(friendSteamID)
+        friendFavoriteMapWinRate = steamScript.getSpecificMapWinRate(friendSteamID, yourFavoriteMap)
+    except:
+        errormsg = "This friend has their game data set to private!"
+
+    return render_template('compareFriends.html', **locals())
+
 # the following pages are mini pages that list out recommendations for
 # how a player can improve on a given stat.
 # they combine hand-picked suggested materials but also pulls from

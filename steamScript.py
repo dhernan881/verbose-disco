@@ -14,6 +14,26 @@ def getUserInfo(steamID):
     accountProfilePicture = playerInfo['response']['players'][0]['avatarmedium']
     return accountName, accountProfilePicture
 
+# gets win rate on a given map
+def getSpecificMapWinRate(steamID, map):
+    steamAPILink = 'https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?appid=730&key='
+    steamAPILink += steamAPIKey
+    steamAPILink += "&steamid="
+    steamAPILink += str(steamID)
+    userSteamStats = requests.get(steamAPILink).json()
+
+    for elem in userSteamStats['playerstats']['stats']:
+        if(elem['name'] == f'total_wins_map_{map}'):
+            totalMapWins = elem['value']
+        elif(elem['name'] == f'total_rounds_map_{map}'):
+            totalMapRounds = elem['value']
+            break
+    
+    winPercent = totalMapWins / totalMapRounds * 100
+    winPercent = round(winPercent, 2)
+
+    return winPercent
+
 # gets the user's in-game CS:GO stats
 def getSteamUserStats(steamID):
     steamAPILink = 'https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?appid=730&key='
@@ -151,9 +171,6 @@ def getFriendSteamIDFromWord(yourSteamID, word):
         return list(searchMatches[0].values())[0]
     else:
         matches = []
-        return searchMatches
         for person in searchMatches:
-            matches.append(person.keys()[0])
+            matches.append(list(person.keys())[0])
         return matches
-
-print(getFriendSteamIDFromWord(76561198111669661, 'Krach'))

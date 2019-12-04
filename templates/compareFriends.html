@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css" integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
+</head>
+<body>
+    <div class="pure-menu pure-menu-horizontal" style="background:maroon">
+        {% if steamID != "nologin" %}
+            <a href="/profile/{{yourSteamID}}" class="pure-menu-heading pure-menu-link" style="background:maroon; color:lightgray">Profile</a>
+        {% else %}
+            <a href="/" class="pure-menu-heading pure-menu-link" style="background:maroon; color:lightgray">Login</a>
+        {% endif %}
+        <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/recommendations/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">All Recommendations</a></li>
+            <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+                <a href="#" id="menuLink1" class="pure-menu-link" style="background:maroon; color:lightgray">Maps</a>
+                <ul class="pure-menu-children">
+                    <li class="pure-menu-item"><a href="/de_cache Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Cache</a></li>
+                    <li class="pure-menu-item"><a href="/de_cbble Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Cobblestone</a></li>
+                    <li class="pure-menu-item"><a href="/de_dust2 Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Dust 2</a></li>
+                    <li class="pure-menu-item"><a href="/de_inferno Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Inferno</a></li>
+                    <li class="pure-menu-item"><a href="/de_mirage Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Mirage</a></li>
+                    <li class="pure-menu-item"><a href="/de_nuke Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Nuke</a></li>
+                    <li class="pure-menu-item"><a href="/de_overpass Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Overpass</a></li>
+                    <li class="pure-menu-item"><a href="/de_train Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Train</a></li>
+                    <li class="pure-menu-item"><a href="/de_vertigo Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Inferno</a></li>
+                </ul>
+            </li>
+            <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+                <a href="#" id="menuLink2" class="pure-menu-link" style="background:maroon; color:lightgray">Other Tips</a>
+                <ul class="pure-menu-children">
+                    <li class="pure-menu-item"><a href="/K/D Ratio/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">K/D Ratio</a></li>
+                    <li class="pure-menu-item"><a href="/Headshot %/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Headshot %</a></li>
+                    <li class="pure-menu-item"><a href="/Overall Win Rate/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Overall Win Rate</a></li>
+                    <li class="pure-menu-item"><a href="/Last Match K/D Ratio/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Last Match K/D Ratio</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    <div class="pure-g">
+        <div class="pure-u-11-24">
+            <p style="text-align: right;">{{yourName}}</p>
+            <img style="float:right; margin: 0 0 20px 0" alt="Your Profile Pic" src={{yourProfilePicture}} width=64 height=64>
+            <br>
+            {% if friendKillDeath %}
+                <p style="text-align: right; clear:both">K/D Ratio:
+                    {% if yourKillDeath >= friendKillDeath %}
+                        <span style="color:green">{{yourKillDeath}}</span>
+                    {% else %}
+                        <span style="color:red">{{yourKillDeath}}</span>
+                    {% endif %}
+                </p>
+                <p style="text-align: right;">Headshot Percent:
+                    {% if yourHeadshotPercent >= friendHeadshotPercent %}
+                        <span style="color:green">{{yourHeadshotPercent}} %</span>
+                    {% else %}
+                        <span style="color:red">{{yourHeadshotPercent}} %</span>
+                    {% endif %}
+                </p>
+                <p style="text-align: right;">Overall Win Rate:
+                    {% if yourOverallWinPercent >= friendOverallWinPercent %}
+                        <span style="color:green">{{yourOverallWinPercent}} %</span>
+                    {% else %}
+                        <span style="color:red">{{yourOverallWinPercent}} %</span>
+                    {% endif %}
+                </p>
+                <p style="text-align: right;">Last Match K/D Ratio:
+                    {% if yourLastMatchKillDeath >= friendLastMatchKillDeath %}
+                        <span style="color:green">{{yourLastMatchKillDeath}}</span> 
+                    {% else %}
+                        <span style="color:red">{{yourLastMatchWinPercent}}</span>
+                    {% endif %}
+                </p>
+                <p style="text-align: right;">Favorite Map: {{yourFavoriteMap}}</p>
+                <p style="text-align: right;">{{yourFavoriteMap}} Win Rate:
+                    {% if yourFavoriteMapWinRate >= friendFavoriteMapWinRate %}
+                        <span style="color:green">{{yourFavoriteMapWinRate}} %</span>
+                    {% else %}
+                        <span style="color:red">{{yourFavoriteMapWinRate}} %</span>
+                    {% endif %}
+                </p>
+            {% else %}
+                <p style="text-align: right; clear:both">K/D Ratio: {{yourKillDeath}}</p>
+                <p style="text-align: right">Headshot %: {{yourHeadshotPercent}} %</p>
+                <p style="text-align: right">Overall Win Rate: {{yourOverallWinPercent}} %</p>
+                <p style="text-align: right">Last Match K/D Ratio: {{yourLastMatchKillDeath}}</p>
+                <p style="text-align: right">Favorite Map: {{yourFavoriteMap}}</p>
+                <p style="text-align: right">{{yourFavoriteMap}} Win Rate: {{yourFavoriteMapWinRate}} %</p>
+            {% endif %}
+        </div>
+        <div class="pure-u-2-24"></div>
+        <div class="pure-u-11-24">
+            <p>{{friendName}}</p>
+            <img alt="Friend Profile Pic" src={{friendProfilePicture}} width=64 height=64>
+            {% if errormsg %}
+                <p>{{errormsg}}</p>
+            {% endif %}
+            <p>
+                {% if friendKillDeath >= yourKillDeath %}
+                    <span style="color:green">{{friendKillDeath}}</span>
+                {% else %}
+                    <span style="color:red">{{friendKillDeath}}</span>
+                {% endif %}
+            </p>
+            <p>
+                {% if friendHeadshotPercent >= yourHeadshotPercent %}
+                    <span style="color:green">{{friendHeadshotPercent}} %</span>
+                {% else %}
+                    <span style="color:red">{{friendHeadshotPercent}} %</span>
+                {% endif %}
+            </p>
+            <p>
+                {% if friendOverallWinPercent >= yourOverallWinPercent %}
+                    <span style="color:green">{{friendOverallWinPercent}} %</span>
+                {% else %}
+                    <span style="color:red">{{friendOverallWinPercent}} %</span>
+                {% endif %}
+            </p>
+            <p>
+                {% if friendLastMatchKillDeath >= yourLastMatchKillDeath %}
+                    <span style="color:green">{{friendLastMatchKillDeath}}</span> 
+                {% else %}
+                    <span style="color:red">{{friendLastMatchKillDeath}}</span>
+                {% endif %}
+            </p>
+            <br>
+            <p>
+                {% if friendFavoriteMapWinRate >= yourFavoriteMapWinRate %}
+                    <span style="color:green">{{friendFavoriteMapWinRate}} %</span>
+                {% else %}
+                    <span style="color:red">{{friendFavoriteMapWinRate}} %</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    <form action="/friendSearch/{{yourSteamID}}">
+        <input type="submit" class="pure-button" value="Compare With A New Friend"/>
+    </form>
+</body>
