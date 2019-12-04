@@ -359,7 +359,7 @@ def friendSearch(steamID):
         else:
             return redirect(url_for('compareFriends', yourSteamID=steamID, friendSteamID=friendResult))
     else:
-        return render_template('friendSearch.html')
+        return render_template('friendSearch.html', **locals())
 
 @app.route('/compareFriends/<yourSteamID>/<friendSteamID>')
 def compareFriends(yourSteamID,friendSteamID):

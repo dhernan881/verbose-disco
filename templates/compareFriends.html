@@ -10,6 +10,7 @@
             <a href="/" class="pure-menu-heading pure-menu-link" style="background:maroon; color:lightgray">Login</a>
         {% endif %}
         <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/friendSearch/{{steamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">Compare With Friends!</a></li>
             <li class="pure-menu-item"><a href="/recommendations/{{yourSteamID}}" class="pure-menu-link" style="background:maroon; color:lightgray">All Recommendations</a></li>
             <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
                 <a href="#" id="menuLink1" class="pure-menu-link" style="background:maroon; color:lightgray">Maps</a>
@@ -93,43 +94,44 @@
             <img alt="Friend Profile Pic" src={{friendProfilePicture}} width=64 height=64>
             {% if errormsg %}
                 <p>{{errormsg}}</p>
+            {% else %}
+                <p>
+                    {% if friendKillDeath >= yourKillDeath %}
+                        <span style="color:green">{{friendKillDeath}}</span>
+                    {% else %}
+                        <span style="color:red">{{friendKillDeath}}</span>
+                    {% endif %}
+                </p>
+                <p>
+                    {% if friendHeadshotPercent >= yourHeadshotPercent %}
+                        <span style="color:green">{{friendHeadshotPercent}} %</span>
+                    {% else %}
+                        <span style="color:red">{{friendHeadshotPercent}} %</span>
+                    {% endif %}
+                </p>
+                <p>
+                    {% if friendOverallWinPercent >= yourOverallWinPercent %}
+                        <span style="color:green">{{friendOverallWinPercent}} %</span>
+                    {% else %}
+                        <span style="color:red">{{friendOverallWinPercent}} %</span>
+                    {% endif %}
+                </p>
+                <p>
+                    {% if friendLastMatchKillDeath >= yourLastMatchKillDeath %}
+                        <span style="color:green">{{friendLastMatchKillDeath}}</span> 
+                    {% else %}
+                        <span style="color:red">{{friendLastMatchKillDeath}}</span>
+                    {% endif %}
+                </p>
+                <br>
+                <p>
+                    {% if friendFavoriteMapWinRate >= yourFavoriteMapWinRate %}
+                        <span style="color:green">{{friendFavoriteMapWinRate}} %</span>
+                    {% else %}
+                        <span style="color:red">{{friendFavoriteMapWinRate}} %</span>
+                    {% endif %}
+                </p>
             {% endif %}
-            <p>
-                {% if friendKillDeath >= yourKillDeath %}
-                    <span style="color:green">{{friendKillDeath}}</span>
-                {% else %}
-                    <span style="color:red">{{friendKillDeath}}</span>
-                {% endif %}
-            </p>
-            <p>
-                {% if friendHeadshotPercent >= yourHeadshotPercent %}
-                    <span style="color:green">{{friendHeadshotPercent}} %</span>
-                {% else %}
-                    <span style="color:red">{{friendHeadshotPercent}} %</span>
-                {% endif %}
-            </p>
-            <p>
-                {% if friendOverallWinPercent >= yourOverallWinPercent %}
-                    <span style="color:green">{{friendOverallWinPercent}} %</span>
-                {% else %}
-                    <span style="color:red">{{friendOverallWinPercent}} %</span>
-                {% endif %}
-            </p>
-            <p>
-                {% if friendLastMatchKillDeath >= yourLastMatchKillDeath %}
-                    <span style="color:green">{{friendLastMatchKillDeath}}</span> 
-                {% else %}
-                    <span style="color:red">{{friendLastMatchKillDeath}}</span>
-                {% endif %}
-            </p>
-            <br>
-            <p>
-                {% if friendFavoriteMapWinRate >= yourFavoriteMapWinRate %}
-                    <span style="color:green">{{friendFavoriteMapWinRate}} %</span>
-                {% else %}
-                    <span style="color:red">{{friendFavoriteMapWinRate}} %</span>
-                {% endif %}
-            </p>
         </div>
     </div>
     <form action="/friendSearch/{{yourSteamID}}">
