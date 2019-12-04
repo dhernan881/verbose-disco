@@ -7,11 +7,6 @@ from urllib.parse import urlencode, quote
 import csv
 import ast
 
-# compare with other people
-# store sites already seen
-# threading
-# aesthetic
-
 # NOTE that css for the html pages is from https://purecss.io/
 
 app = Flask(__name__)
@@ -29,7 +24,7 @@ def loginError():
     Go to your profile -> Edit Profile -> My Profile (set to Public) -> Game Details (set to Public)'''
     return render_template('index.html', **locals())
 
-# BEGIN NOT MINE
+# *** BEGIN NOT MINE ***
 # from https://github.com/fourcube/minimal-steam-openid
 @app.route('/signin')
 def signIn():
@@ -51,9 +46,10 @@ def authorize():
     steamID = request.args["openid.claimed_id"]
     steamID = steamID[steamID.index("/id/") + 4:]
     return redirect(url_for('profile', steamID=steamID))
-# END NOT MINE
+# *** END NOT MINE ***
 
-# get's the user's profile from csv [steamID, [favoritePlayer], [previous matches stats]]
+# get's the user's profile from the csv
+# i.e. [steamID, [favoritePlayer], [previous matches stats]]
 def getUserProfile(steamID):
     userProfile = None
     with open("userData.csv") as csvfile:
@@ -61,6 +57,7 @@ def getUserProfile(steamID):
         for row in profileReader:
             if steamID in row:
                 userProfile = row
+    # if we didn't find their profile; make a new one!
     if userProfile == None:
         with open("userData.csv", "a+") as csvfile:
             csvfile.write(f"{steamID},[],[]\n")
@@ -71,7 +68,7 @@ def getUserProfile(steamID):
     return userProfile
 
 # needed for jinja
-# returns a tuple of variables so I can define them in web functions
+# returns a tuple of variables so I can define them in the web functions
 def getUserLocals(steamID):
     userStats = steamScript.getSteamUserStats(steamID)
     userKillDeath = userStats['killDeathRatio']
@@ -102,6 +99,7 @@ def setFavoritePlayer(player, steamID):
     userProfile = getUserProfile(steamID)
     newRow = [steamID, [player], getLastMatchDictFromProfile(userProfile)]
 
+    # store the lines in the csv as a list, then overwrite the one with the target profile
     with open("userData.csv", "r") as readFile:
         profileReader = csv.reader(readFile)
         lines = list(profileReader)
@@ -110,11 +108,13 @@ def setFavoritePlayer(player, steamID):
                 rowIndex = i
         lines[rowIndex] = newRow
     
+    # rewrite the csv with all of the new lines
     with open("userData.csv", "w") as writeFile:
         profileWriter = csv.writer(writeFile)
         profileWriter.writerows(lines)
 
 # removes the row containing the given steamID from userData.csv
+# same technique as the previous method
 def removeAccountFromCSV(steamID):
     with open("userData.csv", "r") as readFile:
         profileReader = csv.reader(readFile)
@@ -138,6 +138,7 @@ def updateStats(steamID, stats):
         # newStats = oldStats + [stats]
     newRow = [steamID, getUserTeam(userProfile), matchStats]
 
+    # rewrite the csv in the same fashion as setFavoritePlayer
     with open("userData.csv", "r") as readFile:
         profileReader = csv.reader(readFile)
         lines = list(profileReader)
@@ -165,7 +166,7 @@ def buildGraphStats(stats):
     return kdrGraphStats,adrGraphStats
 
 # needed for jinja
-# returns a tuple of variables so I can define them in web functions
+# returns a tuple of variables so I can define them in the web functions
 def getHLTVLocals(d, map):
     name = d['nickname']
     killDeathRatio = d['killDeathRatio']
@@ -201,10 +202,10 @@ def getUserStatsDict(steamID):
 
 # Gets the users three lowest stats with respect to their favorite player's
 def getThreeLowestStats(userDict, hltvDict):
-
     # So the steam API is old and they have made almost no updates since it
     # came out. The only actual competitive maps that are tracked are the ones
-    # in legalMaps
+    # in legalMaps which is unfortunate b/c mirage and cache are 
+    # two of the most popular maps
     legalMaps = ['de_dust2', 'de_inferno', 'de_nuke', 'de_train',
     'de_vertigo', 'de_cbble']
     fractions = dict()
@@ -271,6 +272,9 @@ def getFirstYoutubeThumbnailAndLink(link):
 # but are used in the html file
 @app.route('/profile/<steamID>', methods=["GET", "POST"])
 def profile(steamID):
+    # you shouldn't be here if you're not logged in but got to this page somehow
+    if(steamID == 'nologin'):
+        return redirect(url_for('index'))
     # if this try doesn't work (more specifically, the first lines),
     # return to the login page because their account is set to private somewhere
     try:
@@ -284,11 +288,12 @@ def profile(steamID):
         return redirect(url_for('loginError'))
 
     newestMatchStats = steamScript.getLastMatchKDRAndADR(steamID)
-    updateStats(steamID, newestMatchStats)
+    updateStats(steamID, newestMatchStats) # update csv with their newest match
     
     # have to update userProfile because updateStats destructively modifies
     # the list of match stats
     userProfile = getUserProfile(steamID)
+    # for the google chart
     kdrGraphStats,adrGraphStats = \
         buildGraphStats(getLastMatchDictFromProfile(userProfile))
     
@@ -303,9 +308,13 @@ def profile(steamID):
                     favoriteFavoriteMapWinPercent = \
                         getHLTVLocals(userHLTVStats, userFavoriteMap)
         except:
+            # sometimes the script errors seemingly randomly
+            # I believe it's a result of HLTV temporarily blocking GET requests
+            # If the player refreshes this page too many times
             hltvError = "Error. Could not connect to HLTV. Please try again later."
             return render_template("profile.html", **locals())
 
+        # gets the three lowest stats w/respect to favorite player
         userStatsDict = getUserStatsDict(steamID)
         lowest1, lowest2, lowest3 = getThreeLowestStats(userStatsDict, userHLTVStats)
 
@@ -344,12 +353,18 @@ def profile(steamID):
             # if we didn't search or submit anything, then just load the page
             except:
                 return render_template("profile.html", **locals())
-    return render_template("profile.html",  **locals())
+    # if we're just visiting and not searching/setting a favorite player
+    else:
+        return render_template("profile.html",  **locals())
 
+# page where user can search for a friend in their Steam friends list
 @app.route('/friendSearch/<steamID>', methods=['GET', 'POST'])
 def friendSearch(steamID):
+    # shouldn't be at this page if we're not logged in
     if(steamID == 'nologin'):
         return redirect(url_for('index'))
+    # search for the friend in the friends list and, if they are in it,
+    # redirect to the comparison page
     if(request.method == 'POST'):
         search = request.form["search"]
         friendResult = steamScript.getFriendSteamIDFromWord(steamID, search)
@@ -360,20 +375,31 @@ def friendSearch(steamID):
                 msg += ', '
             msg = msg[:-2] + '?' # chop off last comma
             return render_template('friendSearch.html', **locals())
+        elif(friendResult == None):
+            msg = "Friend not in your Steam friends list: "
+            msg += search
+            return render_template('friendSearch.html', **locals())
         else:
             return redirect(url_for('compareFriends', yourSteamID=steamID, friendSteamID=friendResult))
+    # if we're just visiting then just load the page
     else:
         return render_template('friendSearch.html', **locals())
 
+# page for comparing stats with steam friends
 @app.route('/compareFriends/<yourSteamID>/<friendSteamID>')
 def compareFriends(yourSteamID,friendSteamID):
+    # shouldn't be here if not logged in
     if(yourSteamID == 'nologin'):
         return redirect(url_for('index'))
+
+    # get your data, which shouldn't be a problem if you logged in
     yourName, yourProfilePicture = steamScript.getUserInfo(yourSteamID)
     yourKillDeath, yourHeadshotPercent, yourOverallWinPercent, \
         yourLastMatchKillDeath, yourFavoriteMap, yourFavoriteMapWinRate = \
             getUserLocals(yourSteamID)
 
+    # since we don't know for sure if your friend's game data is private,
+    # try first and display an error message if they're private
     try:
         friendName, friendProfilePicture = steamScript.getUserInfo(friendSteamID)
         friendKillDeath, friendHeadshotPercent, friendOverallWinPercent, \

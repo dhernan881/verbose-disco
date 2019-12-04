@@ -26,6 +26,7 @@ def getProfileLinkSuffixes():
         pageLines[i] = line
     return set(pageLines)
 
+# gets the full link to a player profile given their name
 def getFullLinkFromPlayerName(name):
     hltvLink = 'https://www.hltv.org'
     lines = []
@@ -59,20 +60,23 @@ def getFullLinkFromPlayerName(name):
 # Rounds Played, KPR, APR, DPR, Saved by Teammates / Round (i.e. was traded),
 # Saved Teammates / Round (i.e. traded), Rating 2.0
 
+# get's the player's stats given a link to their page
 def getPlayerStatsFromLink(link):
     playerRequest = requests.get(link)
     profilePageLines = playerRequest.text.splitlines()
-    #key words to search for that have lines with stats on them
+    # key words to search for that have lines with stats on them
+    # see above for descriptions
     keyTerms = ["summaryStatBreakdownDataValue", "text-ellipsis", '"stats-row"',
     '"SummaryTeamname"']
-    # isolate the important lines
+    # isolate the important lines (i.e. lines with a key term)
     importantLines = []
     for line in profilePageLines:
         for term in keyTerms:
             if(term in line):
                 importantLines.append(line)
                 break
-    # these lines are all junk:
+    # this line and all lines after it are all junk 
+    # but still come up in importantLines: 
     uselessLine = '                        <div class="text-ellipsis">Maps in filter</div>'
     uselessIndex = importantLines.index(uselessLine)
     importantLines = importantLines[:uselessIndex]
@@ -174,9 +178,10 @@ def getPlayerStatsFromLink(link):
     # Done!
     playerStats['winPercent'], playerStats['lastMatchKillDeathRatio'] = \
         getMatchStatsFromLink(link)
-    # getFavoriteMapStats
     return playerStats
 
+# gets the players match stats (win rate, last match K/D) given a link to
+# their profile page. The match stats are stored on a different page
 def getMatchStatsFromLink(link):
     i0 = link.index("/players") + 9
     link = link[:i0] + "matches/" + link[i0:]
@@ -205,7 +210,8 @@ def getMatchStatsFromLink(link):
 
     return winPercent, lastMatchKillDeathRatio
 
-# now let's put it all into one method in case I want to use it this way:
+# now let's put it all into one method
+# get a player's stats given a search term
 def getPlayerStatsFromWord(word):
     link = getFullLinkFromPlayerName(word)
     if(link == None):
@@ -222,6 +228,7 @@ def getPlayerStatsFromWord(word):
         return msg
     return getPlayerStatsFromLink(link)
 
+# gets the player's win percent on the given map name and search term
 def getFavoriteMapWinPercentFromWord(word, map):
     # same as normal map stats method but specific to one map
     link = getFullLinkFromPlayerName(word)

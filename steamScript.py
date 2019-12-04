@@ -45,7 +45,10 @@ def getSteamUserStats(steamID):
     userStats = dict()
     mapsDict = dict()
     winsDict = dict()
-    # just for now, only take K/D
+    
+    # inefficient. can be streamlined later
+    # searches through the API call for these in-game stats:
+    # note it gets all the rounds/wins on every map as well
     for elem in userSteamStats['playerstats']['stats']:
         if (elem['name'] == 'total_kills'): userStats['totalKills'] = elem['value']
         elif(elem['name'] == 'total_deaths'): userStats['totalDeaths'] = elem['value']
@@ -61,13 +64,10 @@ def getSteamUserStats(steamID):
     userStats['headshotRatio'] = headshotKills / userStats['totalKills']
     userStats['killDeathRatio'] = userStats['totalKills'] / userStats['totalDeaths']
     userStats['lastKillDeathRatio'] = lastKills / lastDeaths
+    # call getFavoriteMapAndWinRate to determine favorite map and win rate on it
     userStats['favoriteMap'],userStats['favoriteMapWinRate'] = \
         getFavoriteMapAndWinRate(mapsDict, winsDict)
     return userStats
-    # want kdr (compare to pro overall k/d), headshot %,
-    # favorite map, favorite map win %, 
-    # overall win rate (how to close out more rounds? idk),
-    # last map k/d (compare to pro last match, teach warmup)
 
 # get's the user's "favorite" map (i.e. one with the most rounds played)
 # and their winrate on that map
@@ -88,7 +88,8 @@ def getFavoriteMapAndWinRate(mapsDict, winsDict):
     
     return favoriteMap, favoriteMapRoundWins / favoriteMapRounds
 
-# get's the user's last match KDR and ADR exclusively; used for progression
+# get's the user's last match KDR and ADR only; used for progression
+# and the google chart
 def getLastMatchKDRAndADR(steamID):
     steamLink = 'https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?appid=730&key='
     steamLink += steamAPIKey
@@ -109,6 +110,7 @@ def getLastMatchKDRAndADR(steamID):
 
     return lastMatchStats
 
+# gets the json containing all of the user's Steam friends
 def getFriends(steamID):
     requestURL = 'https://api.steampowered.com/ISteamUser/GetFriendList/v1/?key='
     requestURL += steamAPIKey
@@ -117,11 +119,11 @@ def getFriends(steamID):
     friends = requests.get(requestURL).json()
     return friends
 
+# get the names of the user's friends. used to make searching more easy to use
 def getFriendNicknames(steamID):
     friends = getFriends(steamID)
     friendSteamIDs = []
     friendsDict = dict()
-    hundreds = len(friends['friendslist']['friends']) // 100
     
     for elem in friends['friendslist']['friends']:
         friendSteamIDs.append(elem['steamid'])
@@ -140,7 +142,7 @@ def getFriendNicknames(steamID):
         friendRequest = requests.get(requestURL).json()
         for player in friendRequest['response']['players']:
             # map steamID to name
-            # I can't think of an efficient way to do this. need to fix later
+            # I can't think of a better way to organize it. will update after
             friendsDict[player['personaname']] = player['steamid']
 
         # trim off friendsDestructive and reset requestURL for next pass
@@ -148,17 +150,17 @@ def getFriendNicknames(steamID):
         requestURL = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key='
         requestURL += steamAPIKey
         requestURL += '&steamids='
+    # once the length is at most 100, get the rest of the friend steam IDs
     for i in range(len(friendsDestructive)):
         requestURL += str(friendsDestructive[i])
         requestURL += ','
     friendRequest = requests.get(requestURL).json()
     for player in friendRequest['response']['players']:
-        # map steamID to name
-        # I can't think of an efficient way to do this. need to fix later
         friendsDict[player['personaname']] = player['steamid']
     
     return friendsDict
 
+# get the friends steam id given a word (search term)
 def getFriendSteamIDFromWord(yourSteamID, word):
     yourFriends = getFriendNicknames(yourSteamID)
     searchMatches = []
@@ -170,6 +172,7 @@ def getFriendSteamIDFromWord(yourSteamID, word):
     elif(len(searchMatches) == 1):
         return list(searchMatches[0].values())[0]
     else:
+        # if more than one match, return a list of the matches
         matches = []
         for person in searchMatches:
             matches.append(list(person.keys())[0])
