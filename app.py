@@ -297,10 +297,14 @@ def profile(steamID):
     if(len(getUserTeam(userProfile)) > 0):
         userTeam = getUserTeam(userProfile)[0]
         userHLTVStats = hltvScript.getPlayerStatsFromWord(userTeam)
-        favoriteName, favoriteKillDeath, favoriteHeadshotPercent, \
-            favoriteWinPercent, favoriteLastMatchKillDeath, \
-                favoriteFavoriteMapWinPercent = \
-                    getHLTVLocals(userHLTVStats, userFavoriteMap)  
+        try:
+            favoriteName, favoriteKillDeath, favoriteHeadshotPercent, \
+                favoriteWinPercent, favoriteLastMatchKillDeath, \
+                    favoriteFavoriteMapWinPercent = \
+                        getHLTVLocals(userHLTVStats, userFavoriteMap)
+        except:
+            hltvError = "Error. Could not connect to HLTV. Please try again later."
+            return render_template("profile.html", **locals())
 
         userStatsDict = getUserStatsDict(steamID)
         lowest1, lowest2, lowest3 = getThreeLowestStats(userStatsDict, userHLTVStats)
