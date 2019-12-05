@@ -353,9 +353,7 @@ def profile(steamID):
             # if we didn't search or submit anything, then just load the page
             except:
                 return render_template("profile.html", **locals())
-    # if we're just visiting and not searching/setting a favorite player
-    else:
-        return render_template("profile.html",  **locals())
+    return render_template("profile.html",  **locals())
 
 # page where user can search for a friend in their Steam friends list
 @app.route('/friendSearch/<steamID>', methods=['GET', 'POST'])

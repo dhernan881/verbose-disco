@@ -1,4 +1,2 @@
 steamid,team,history
-76561198182314099,[],[]
-76561198111669661,[],"[{'lastMatchADR': 96, 'lastMatchKDR': 0.82}]"
-76561198293664924,[],"[{'lastMatchADR': 2611, 'lastMatchKDR': 2.0}]"
+76561198111669661,['kennyS'],"[{'lastMatchADR': 101, 'lastMatchKDR': 0.87}, {'lastMatchADR': 40, 'lastMatchKDR': 0.56}, {'lastMatchADR': 150, 'lastMatchKDR': 2.1}, {'lastMatchADR': 75, 'lastMatchKDR': 0.96}, {'lastMatchADR': 80, 'lastMatchKDR': 0.8}, {'lastMatchADR': 96, 'lastMatchKDR': 0.82}]"
