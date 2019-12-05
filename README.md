@@ -26,5 +26,8 @@ In addition to the core Python libraries, you will need:
 * flask
 * flask_openid
 * urllib3
+
+The following libraries should be core libraries. Just in case they
+are not installed by default, you will also need:
 * csv
 * ast
